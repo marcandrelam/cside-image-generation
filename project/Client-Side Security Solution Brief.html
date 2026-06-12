@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>cside · Client-Side Security Solution Brief</title>
+<link rel="stylesheet" href="tokens.css">
+<style>
+  /* ---------- page system ---------- */
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--color-neutral-100); }
+
+  .sheet {
+    position: relative;
+    width: 816px;
+    height: 1056px;
+    margin: 24px auto;
+    background: #fff;
+    box-shadow: 0 1px 3px rgba(0,0,0,.08), 0 10px 40px rgba(0,0,0,.10);
+    padding: 44px 56px 78px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .sheet > *:not(.brief-foot) { margin-top: 0; margin-bottom: 0; flex: 0 0 auto; }
+
+  /* ---------- shared chrome ---------- */
+  .brief-top {
+    display: flex; align-items: center; justify-content: space-between;
+    padding-bottom: 14px; margin-bottom: 20px;
+    border-bottom: 1px solid var(--color-neutral-200);
+  }
+  .brief-top img { height: 24px; }
+  .brief-top .kicker {
+    font: 500 12px/1 var(--font-sans);
+    letter-spacing: 1px; text-transform: uppercase;
+    color: var(--color-neutral-500);
+  }
+  .brief-foot {
+    position: absolute; left: 56px; right: 56px; bottom: 24px;
+    display: flex; align-items: center; justify-content: space-between;
+    padding-top: 14px; border-top: 1px solid var(--color-neutral-200);
+    font: 400 12px/1 var(--font-sans); color: var(--color-neutral-500);
+  }
+  .brief-foot .pg { font-weight: 500; color: var(--color-neutral-700); }
+
+  /* ---------- type ---------- */
+  .eyebrow {
+    font: 500 13px/1 var(--font-sans);
+    letter-spacing: 1px; text-transform: uppercase;
+    color: var(--color-brand-500); margin: 0 0 10px;
+  }
+  h1.title {
+    font: 500 40px/1.06 var(--font-sans);
+    letter-spacing: -1.3px; color: var(--color-neutral-900);
+    margin: 0 0 12px; text-wrap: balance;
+  }
+  h1.title .accent { color: var(--color-brand-500); }
+  h2.head {
+    font: 500 26px/1.12 var(--font-sans);
+    letter-spacing: -0.8px; color: var(--color-neutral-900);
+    margin: 0 0 8px; text-wrap: balance;
+  }
+  .lede { font: 400 16px/1.45 var(--font-sans); color: var(--color-neutral-600); margin: 0; }
+  p.body { font: 400 15px/1.6 var(--font-sans); color: var(--color-neutral-700); margin: 0 0 12px; }
+  .muted { color: var(--color-neutral-500); }
+
+  /* ---------- pills ---------- */
+  .pill-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 0; }
+  .pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 5px 11px; border-radius: 8px;
+    border: 1px solid var(--color-brand-200);
+    background: var(--color-brand-50); color: var(--color-brand-700);
+    font: 500 12.5px/1 var(--font-sans);
+  }
+  .pill svg { width: 13px; height: 13px; }
+
+  /* ---------- two-col risk/solution ---------- */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 0; margin-top: 18px;
+    border: 1px solid var(--color-neutral-200); border-radius: 16px; overflow: hidden; }
+  .col { padding: 17px 18px; }
+  .col + .col { border-left: 1px solid var(--color-neutral-200); }
+  .col.risk { background: var(--color-neutral-25); }
+  .col-tag {
+    display: inline-flex; align-items: center; gap: 6px;
+    font: 500 11px/1 var(--font-sans); letter-spacing: .5px; text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .col.risk .col-tag { color: var(--color-error-600); }
+  .col.fix  .col-tag { color: var(--color-success-700); }
+  .col-tag .dot { width: 7px; height: 7px; border-radius: 999px; }
+  .col.risk .dot { background: var(--color-error-500); }
+  .col.fix .dot { background: var(--color-success-500); }
+  .col h3 { font: 500 18px/1.25 var(--font-sans); color: var(--color-neutral-900); margin: 0 0 8px; letter-spacing: -.3px; }
+  .col p { font: 400 13.5px/1.55 var(--font-sans); color: var(--color-neutral-600); margin: 0; }
+
+  /* ---------- stats ---------- */
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-top: 14px; }
+  .stat { border: 1px solid var(--color-neutral-200); border-radius: 16px; padding: 13px 14px; }
+  .stat.fill { background: var(--color-brand-50); border-color: transparent; }
+  .stat .num { font: 500 30px/1 var(--font-sans); letter-spacing: -1.1px; color: var(--color-neutral-900); }
+  .stat.fill .num { color: var(--color-brand-700); }
+  .stat .lab { font: 500 11.5px/1.3 var(--font-sans); text-transform: uppercase; letter-spacing: .4px; color: var(--color-neutral-500); margin-top: 5px; }
+  .stat.fill .lab { color: var(--color-brand-700); }
+  .stat .sub { font: 400 11.5px/1.4 var(--font-sans); color: var(--color-neutral-400); margin-top: 4px; }
+
+  /* ---------- monitor mock (hero, p1) ---------- */
+  .monitor {
+    border: 1px solid var(--color-neutral-200); border-radius: 16px; overflow: hidden;
+    background: #fff; box-shadow: var(--shadow-icon-box);
+  }
+  .monitor .bar { display: flex; align-items: center; gap: 7px; padding: 11px 14px; border-bottom: 1px solid var(--color-neutral-200); background: var(--color-neutral-25); }
+  .monitor .tl { width: 9px; height: 9px; border-radius: 999px; }
+  .monitor .url { margin-left: 8px; font: 400 12px/1 var(--font-mono); color: var(--color-neutral-500); }
+  .monitor .body { padding: 11px 16px; }
+  .monitor .mhead { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .monitor .mhead .t { font: 500 13px/1 var(--font-sans); color: var(--color-neutral-800); }
+  .monitor .mhead .c { font: 500 12px/1 var(--font-sans); color: var(--color-brand-600); display: inline-flex; align-items: center; gap: 5px; }
+  .scriptrow { display: flex; align-items: center; gap: 10px; padding: 6px 0; border-top: 1px solid var(--color-neutral-100); }
+  .scriptrow:first-of-type { border-top: none; }
+  .scriptrow .nm { font: 400 13px/1 var(--font-mono); color: var(--color-neutral-700); }
+  .scriptrow .sz { margin-left: auto; font: 400 11.5px/1 var(--font-mono); color: var(--color-neutral-400); }
+  .scriptrow .badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 7px; border-radius: 7px; font: 500 10.5px/1.3 var(--font-sans); }
+  .badge.ok { background: var(--color-success-50); color: var(--color-success-700); border: 1px solid var(--color-success-200); }
+  .badge.flag { background: var(--color-warning-50); color: var(--color-warning-700); border: 1px solid var(--color-warning-200); }
+  .badge svg { width: 11px; height: 11px; }
+  .dotnote { display: flex; align-items: center; gap: 7px; margin-top: 14px; font: 400 12px/1 var(--font-sans); color: var(--color-neutral-500); }
+  .pulse { width: 8px; height: 8px; border-radius: 999px; background: var(--color-success-500); box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-success-500) 25%, transparent); }
+
+  /* ---------- dependency graph (p2) ---------- */
+  .graph-wrap { position: relative; width: 704px; height: 452px; margin: 12px auto 0;
+    border: 1px solid var(--color-neutral-200); border-radius: 16px; background:
+      radial-gradient(circle, var(--color-neutral-200) 1px, transparent 1px);
+    background-size: 22px 22px; background-position: 6px 6px; overflow: hidden; }
+  .graph-inner { position: absolute; top: 0; left: 50%; width: 704px; height: 600px;
+    transform: translateX(-50%) scale(0.74); transform-origin: top center; }
+  .graph-wrap svg.edges { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .node {
+    position: absolute; transform: translate(-50%, -50%);
+    display: flex; align-items: center; gap: 8px;
+    padding: 7px 10px 7px 7px; background: #fff;
+    border: 1px solid var(--color-neutral-200); border-radius: 11px;
+    box-shadow: 0 1px 2px rgba(0,0,0,.04); white-space: nowrap; z-index: 2;
+  }
+  .node .mono { width: 24px; height: 24px; border-radius: 7px; flex-shrink: 0;
+    display: grid; place-items: center; font: 600 11px/1 var(--font-sans); color: #fff; }
+  .node .nlab { display: flex; flex-direction: column; gap: 1px; }
+  .node .nm { font: 500 12px/1 var(--font-sans); color: var(--color-neutral-900); }
+  .node .cat { font: 400 10px/1 var(--font-sans); color: var(--color-neutral-500); }
+  .node.root { border-color: var(--color-brand-200); background: var(--color-brand-25); box-shadow: 0 2px 8px rgba(0,71,187,.12); }
+  .node.root .mono { background: var(--color-brand-500); }
+  .node.hub { border-color: var(--color-warning-300); box-shadow: 0 2px 10px rgba(247,144,9,.18); z-index: 3; }
+  .node.cside { border-color: var(--color-brand-300); }
+  .node.faded { opacity: .42; }
+  .node .risk { display: inline-flex; align-items: center; gap: 3px; margin-left: 4px;
+    font: 600 11px/1 var(--font-sans); color: var(--color-error-600); }
+  .node .risk svg { width: 12px; height: 12px; }
+  .pillnode {
+    position: absolute; transform: translate(-50%, -50%); z-index: 2;
+    padding: 6px 11px; border-radius: 999px; background: var(--color-neutral-50);
+    border: 1px dashed var(--color-neutral-300); color: var(--color-neutral-500);
+    font: 500 11px/1 var(--font-sans);
+  }
+
+  /* legend */
+  .legend { display: flex; flex-wrap: wrap; gap: 8px 18px; margin-top: 10px; }
+  .legend .li { display: inline-flex; align-items: center; gap: 8px; font: 400 12px/1 var(--font-sans); color: var(--color-neutral-600); }
+  .legend .ln { width: 26px; height: 0; border-top-width: 2px; border-top-style: solid; }
+
+  .callout-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 12px; }
+  .callout { display: flex; gap: 12px; padding: 13px; border-radius: 14px; border: 1px solid var(--color-neutral-200); background: var(--color-neutral-25); }
+  .callout .ico { width: 34px; height: 34px; flex-shrink: 0; border-radius: 9px; display: grid; place-items: center; background: #fff; box-shadow: var(--shadow-icon-box); color: var(--color-brand-500); }
+  .callout .ico.warn { color: var(--color-warning-600); }
+  .callout .ct { font: 500 14px/1.3 var(--font-sans); color: var(--color-neutral-900); margin: 0 0 3px; letter-spacing: -.2px; }
+  .callout .cb { font: 400 12.5px/1.45 var(--font-sans); color: var(--color-neutral-600); margin: 0; }
+
+  /* ---------- inventory table (p3) ---------- */
+  .inv { border: 1px solid var(--color-neutral-200); border-radius: 16px; overflow: hidden; margin-top: 20px; }
+  .inv .ihead, .inv .irow { display: grid; grid-template-columns: 1.7fr 70px 80px 1.5fr 18px; align-items: center; gap: 10px; padding: 11px 16px; }
+  .inv .ihead { background: var(--color-neutral-50); border-bottom: 1px solid var(--color-neutral-200);
+    font: 500 11px/1 var(--font-sans); text-transform: uppercase; letter-spacing: .5px; color: var(--color-neutral-500); }
+  .inv .irow { border-top: 1px solid var(--color-neutral-100); }
+  .inv .irow:first-child { border-top: none; }
+  .vendor { display: flex; align-items: center; gap: 11px; }
+  .vendor .mono { width: 30px; height: 30px; border-radius: 8px; flex-shrink: 0; display: grid; place-items: center; font: 600 12px/1 var(--font-sans); color: #fff; }
+  .vendor .vn { font: 500 13.5px/1.1 var(--font-sans); color: var(--color-neutral-900); text-decoration: underline; text-decoration-color: var(--color-neutral-300); text-underline-offset: 2px; }
+  .vendor .vc { font: 400 12px/1.1 var(--font-sans); color: var(--color-neutral-500); margin-top: 2px; }
+  .cnt { display: inline-flex; align-items: center; gap: 5px; font: 500 13px/1 var(--font-sans); }
+  .cnt.blocked { color: var(--color-neutral-700); }
+  .cnt.blocked svg { color: var(--color-error-500); }
+  .cnt.warn { color: var(--color-neutral-700); }
+  .cnt.warn svg { color: var(--color-warning-500); }
+  .cnt.zero { color: var(--color-neutral-300); }
+  .cnt.zero svg { color: var(--color-neutral-300); }
+  .cnt svg { width: 15px; height: 15px; }
+  .seen { display: flex; flex-direction: column; gap: 3px; }
+  .seen .dt { font: 400 12.5px/1 var(--font-sans); color: var(--color-neutral-700); }
+  .seen .pa { display: inline-flex; align-items: center; gap: 5px; font: 400 11.5px/1 var(--font-mono); color: var(--color-neutral-500); }
+  .seen .pa svg { width: 12px; height: 12px; color: var(--color-brand-400); }
+  .chev { color: var(--color-neutral-300); display: grid; place-items: center; }
+  .chev svg { width: 16px; height: 16px; }
+
+  .skim-card { margin-top: 18px; border: 1px solid var(--color-neutral-200); border-radius: 16px; padding: 22px; background: var(--color-neutral-25); }
+  .skim-card h3 { font: 500 17px/1.2 var(--font-sans); color: var(--color-neutral-900); margin: 0 0 14px; letter-spacing: -.3px; }
+  .skim-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .skim { background: #fff; border: 1px solid var(--color-neutral-200); border-radius: 12px; padding: 15px; }
+  .skim .sn { display: flex; align-items: center; gap: 8px; font: 500 13.5px/1 var(--font-sans); color: var(--color-neutral-900); margin-bottom: 7px; }
+  .skim .sn svg { width: 15px; height: 15px; color: var(--color-error-500); }
+  .skim .sd { font: 400 12.5px/1.5 var(--font-sans); color: var(--color-neutral-600); margin: 0; }
+  .skim .sd b { color: var(--color-error-600); font-weight: 500; }
+
+  /* ---------- how it works (p4) ---------- */
+  .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 16px; }
+  .step { border: 1px solid var(--color-neutral-200); border-radius: 16px; padding: 16px; }
+  .step .sk { font: 500 11px/1 var(--font-sans); letter-spacing: 1px; text-transform: uppercase; color: var(--color-brand-500); margin-bottom: 8px; }
+  .step .si { width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center; background: #fff; box-shadow: var(--shadow-icon-box); color: var(--color-brand-500); margin-bottom: 10px; }
+  .step h4 { font: 500 16px/1.2 var(--font-sans); color: var(--color-neutral-900); margin: 0 0 7px; letter-spacing: -.2px; }
+  .step p { font: 400 13px/1.5 var(--font-sans); color: var(--color-neutral-600); margin: 0; }
+
+  /* compare */
+  .cmp { margin-top: 14px; border: 1px solid var(--color-neutral-200); border-radius: 16px; overflow: hidden; }
+  .cmp .ch, .cmp .cr { display: grid; grid-template-columns: 2fr 1fr 1fr; align-items: center; }
+  .cmp .ch { background: var(--color-neutral-50); border-bottom: 1px solid var(--color-neutral-200); }
+  .cmp .ch > div { padding: 9px 18px; font: 500 12px/1.2 var(--font-sans); text-transform: uppercase; letter-spacing: .4px; color: var(--color-neutral-500); }
+  .cmp .ch .cside-h { color: var(--color-brand-700); background: var(--color-brand-50); display: flex; align-items: center; gap: 7px; }
+  .cmp .ch .cside-h img { height: 15px; }
+  .cmp .cr { border-top: 1px solid var(--color-neutral-100); }
+  .cmp .cr:first-child { border-top: none; }
+  .cmp .cr > div { padding: 9px 18px; font: 400 13.5px/1.4 var(--font-sans); color: var(--color-neutral-700); }
+  .cmp .cr .feat { font-weight: 500; color: var(--color-neutral-900); }
+  .cmp .cr .cside-c { background: var(--color-brand-25); display: flex; align-items: center; gap: 7px; }
+  .cmp .yes { color: var(--color-success-600); display: inline-flex; }
+  .cmp .no { color: var(--color-neutral-400); display: inline-flex; }
+  .cmp .yes svg, .cmp .no svg { width: 17px; height: 17px; }
+  .cell-lab { font: 400 13px/1.3 var(--font-sans); }
+
+  /* CTA */
+  .cta {
+    margin-top: 16px; border-radius: 18px; padding: 20px 28px;
+    background: var(--color-brand-500); color: #fff;
+    display: flex; align-items: center; justify-content: space-between; gap: 24px;
+  }
+  .cta h3 { font: 500 22px/1.2 var(--font-sans); letter-spacing: -.4px; margin: 0 0 6px; }
+  .cta p { font: 400 14px/1.5 var(--font-sans); margin: 0; opacity: .9; max-width: 360px; }
+  .cta .acts { display: flex; flex-direction: column; gap: 10px; flex-shrink: 0; }
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 11px 18px; border-radius: 10px; font: 500 14px/1 var(--font-sans); white-space: nowrap; text-decoration: none; }
+  .btn.white { background: #fff; color: var(--color-brand-700); }
+  .btn.ghost { background: rgba(255,255,255,.12); color: #fff; border: 1px solid rgba(255,255,255,.35); }
+  .btn svg { width: 15px; height: 15px; }
+
+  /* trust strip */
+  .trust { margin-top: 14px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .trust .tl { font: 500 11px/1 var(--font-sans); text-transform: uppercase; letter-spacing: 1px; color: var(--color-neutral-400); margin-right: 4px; }
+  .trust .tchip { font: 400 13px/1 var(--font-sans); color: var(--color-neutral-500); padding: 6px 12px; border: 1px solid var(--color-neutral-200); border-radius: 999px; }
+
+  /* ---------- vendor permissions (p3) ---------- */
+  .vpanel { margin-top: 12px; border: 1px solid var(--color-neutral-200); border-radius: 16px; overflow: hidden; }
+  .vhead { display: flex; align-items: center; gap: 13px; padding: 10px 18px; border-bottom: 1px solid var(--color-neutral-200); }
+  .vhead .av { width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0; display: grid; place-items: center; font: 600 15px/1 var(--font-sans); color: #fff; background: #1f6feb; }
+  .vhead .vmeta { display: flex; flex-direction: column; gap: 3px; }
+  .vhead .vn { font: 500 17px/1 var(--font-sans); color: var(--color-neutral-900); letter-spacing: -.2px; }
+  .vhead .vc { font: 400 12.5px/1 var(--font-sans); color: var(--color-neutral-500); }
+  .vhead .block-btn { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 9px; background: var(--color-error-600); color: #fff; font: 500 13px/1 var(--font-sans); }
+  .vhead .block-btn svg { width: 14px; height: 14px; }
+  .vdesc { padding: 8px 18px; border-bottom: 1px solid var(--color-neutral-200); font: 400 12.5px/1.5 var(--font-sans); color: var(--color-neutral-600); }
+  .vdesc a { color: var(--color-brand-500); text-decoration: none; font-weight: 500; }
+  .vdesc .sep { color: var(--color-neutral-300); margin: 0 7px; }
+  .vtabs { display: flex; gap: 6px; padding: 7px 18px 0; background: var(--color-neutral-25); }
+  .vtab { padding: 7px 14px; border-radius: 9px 9px 0 0; font: 500 12.5px/1 var(--font-sans); color: var(--color-neutral-500); }
+  .vtab.active { background: #fff; color: var(--color-neutral-900); border: 1px solid var(--color-neutral-200); border-bottom-color: #fff; }
+  .vbody { display: grid; grid-template-columns: 1fr 1fr; gap: 0 34px; padding: 2px 18px 6px; }
+  .pgroup-h { display: flex; align-items: center; gap: 8px; padding: 5px 0 1px; font: 500 11px/1 var(--font-sans); text-transform: uppercase; letter-spacing: .6px; color: var(--color-neutral-500); }
+  .pgroup-h.first { padding-top: 2px; }
+  .pgroup-h svg { width: 14px; height: 14px; color: var(--color-neutral-400); }
+  .prow { display: flex; align-items: center; gap: 12px; padding: 2px 0; border-top: 1px solid var(--color-neutral-100); }
+  .prow .pmeta { flex: 1; min-width: 0; }
+  .prow .pn { font: 500 12.5px/1.2 var(--font-sans); color: var(--color-neutral-800); }
+  .prow .pd { font: 400 10.5px/1.3 var(--font-sans); color: var(--color-neutral-500); margin-top: 1px; }
+  .ptoggle { display: flex; gap: 6px; flex-shrink: 0; }
+  .tg { width: 24px; height: 24px; border-radius: 7px; display: grid; place-items: center; border: 1px solid transparent; color: var(--color-neutral-300); }
+  .tg svg { width: 14px; height: 14px; }
+  .prow.on .tg.allow { background: var(--color-success-50); border-color: var(--color-success-200); color: var(--color-success-600); }
+  .prow.off .tg.block { background: var(--color-error-50); border-color: var(--color-error-200); color: var(--color-error-600); }
+  .vfoot-note { padding: 9px 18px; border-top: 1px solid var(--color-neutral-200); background: var(--color-neutral-25); font: 400 12px/1.45 var(--font-sans); color: var(--color-neutral-500); display: flex; align-items: center; gap: 9px; }
+  .vfoot-note svg { width: 15px; height: 15px; color: var(--color-brand-500); flex-shrink: 0; }
+  .vfoot-note b { color: var(--color-neutral-700); font-weight: 500; }
+
+  @media print {
+    body { background: #fff; }
+    .sheet { margin: 0; box-shadow: none; page-break-after: always; }
+    .sheet:last-child { page-break-after: auto; }
+  }
+  @page { size: 816px 1056px; margin: 0; }
+</style>
+</head>
+<body>
+
+<!-- ============================== PAGE 1 ============================== -->
+<section class="sheet" data-screen-label="01">
+  <div class="brief-top">
+    <img src="assets/cside-logo.svg" alt="cside">
+    <span class="kicker">Solution Brief · Client-Side Security</span>
+  </div>
+
+  <p class="eyebrow">Client-side security · Magecart &amp; e-skimming</p>
+  <h1 class="title">Stop web-skimming attacks at the <span class="accent">browser runtime layer</span></h1>
+  <p class="lede">Your WAF protects the server. cside protects what runs in your customers' browsers: every first, third, and fourth-party script, in real time, with 100% session visibility.</p>
+
+  <div class="pill-row">
+    <span class="pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></svg>Browser-layer protection</span>
+    <span class="pill">PCI DSS 6.4.3 &amp; 11.6.1</span>
+    <span class="pill">100% session visibility</span>
+    <span class="pill">AI-enhanced detection</span>
+  </div>
+
+  <div class="two-col">
+    <div class="col risk">
+      <span class="col-tag"><span class="dot"></span>Risk surface</span>
+      <h3>Scripts leak data and break compliance</h3>
+      <p>Modern sites load scripts from dozens of third-party vendors, and those vendors quietly load others. Each runs with full privileges in the browser. Any one can be compromised to skim card data and exfiltrate PII. The vector is invisible to WAFs and server-side controls that never see how code executes.</p>
+    </div>
+    <div class="col fix">
+      <span class="col-tag"><span class="dot"></span>cside solution</span>
+      <h3>Complete visibility and protection</h3>
+      <p>cside monitors every first, third, and fourth-party script in real time. An AI-powered engine watches script behavior to catch web-skimming and injection attacks, including those hidden inside trusted scripts, before damage occurs, maintaining PCI DSS 6.4.3 and 11.6.1 automatically.</p>
+    </div>
+  </div>
+
+  <div class="monitor">
+    <div class="bar">
+      <span class="tl" style="background:var(--color-error-400)"></span>
+      <span class="tl" style="background:var(--color-warning-400)"></span>
+      <span class="tl" style="background:var(--color-success-400)"></span>
+      <span class="url">securecheckout.yoursite.com</span>
+    </div>
+    <div class="body">
+      <div class="mhead">
+        <span class="t">Active scripts · 4 loaded this session</span>
+        <span class="c"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></svg>cside monitoring</span>
+      </div>
+      <div class="scriptrow"><span class="nm">analytics.js</span><span class="badge ok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Verified</span><span class="sz">12 kB</span></div>
+      <div class="scriptrow"><span class="nm">cdn-lib.js</span><span class="badge ok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Verified</span><span class="sz">45 kB</span></div>
+      <div class="scriptrow"><span class="nm">checkout-stripe.js</span><span class="badge ok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Verified</span><span class="sz">28 kB</span></div>
+      <div class="scriptrow"><span class="nm">tracker.min.js</span><span class="badge flag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>New behavior · exfiltration to unknown host</span><span class="sz">3 kB</span></div>
+      <div class="dotnote"><span class="pulse"></span>Real-time behavioral monitoring active. No sampling, no blind spots.</div>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stat fill"><div class="num">100%</div><div class="lab">Session visibility</div><div class="sub">No sampling, no blind spots</div></div>
+    <div class="stat"><div class="num">&lt;1d</div><div class="lab">Setup time</div><div class="sub">One script tag, no rebuild</div></div>
+    <div class="stat"><div class="num">6.4.3</div><div class="lab">+ 11.6.1 compliance</div><div class="sub">Auditor validated</div></div>
+    <div class="stat"><div class="num">1st–4th</div><div class="lab">Party coverage</div><div class="sub">Every script in the chain</div></div>
+  </div>
+
+  <div class="brief-foot"><span>cside · client-side security · 2026</span><span class="pg">01 / 04</span></div>
+</section>
+
+<!-- ============================== PAGE 2 ============================== -->
+<section class="sheet" data-screen-label="02">
+  <div class="brief-top">
+    <img src="assets/cside-logo.svg" alt="cside">
+    <span class="kicker">Solution Brief · The Vendor Load Chain</span>
+  </div>
+
+  <p class="eyebrow">The vendor load chain</p>
+  <h2 class="head">Third parties rarely show up alone.<br>One tag quietly pulls in the next.</h2>
+  <p class="body" style="max-width:680px">When you add a marketing or analytics script to your site, you're rarely adding just one. That script has its own dependencies, and those pull in others. cside surfaces every third-party relationship on your site, in the order it loaded.</p>
+
+  <div class="graph-wrap">
+    <div class="graph-inner">
+    <svg class="edges" viewBox="0 0 704 600" preserveAspectRatio="none">
+      <defs>
+        <marker id="ah-n" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#9aa4b2"/></marker>
+        <marker id="ah-b" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#0047bb"/></marker>
+        <marker id="ah-a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#f79009"/></marker>
+      </defs>
+
+      <!-- decorative density fan from root -->
+      <g stroke="#cdd5df" stroke-width="1" fill="none" opacity="0.30">
+        <path d="M352 56 C 352 110, 60 90, 40 150"/>
+        <path d="M352 56 C 352 110, 130 95, 110 150"/>
+        <path d="M352 56 C 352 110, 220 100, 200 150"/>
+        <path d="M352 56 C 352 120, 470 100, 520 150"/>
+        <path d="M352 56 C 352 120, 560 95, 600 150"/>
+        <path d="M352 56 C 352 120, 650 95, 670 150"/>
+        <path d="M352 56 C 352 160, 330 200, 352 250"/>
+        <path d="M352 56 C 352 130, 410 110, 430 150"/>
+        <path d="M352 56 C 352 130, 290 110, 275 150"/>
+      </g>
+
+      <!-- root -> row1 vendors -->
+      <g stroke="#9aa4b2" stroke-width="1.4" fill="none" marker-end="url(#ah-n)">
+        <path d="M352 64 C 352 110, 120 110, 120 138"/>
+        <path d="M352 64 C 352 110, 255 110, 255 138"/>
+        <path d="M352 64 C 352 110, 392 112, 392 138"/>
+        <path d="M352 64 C 352 110, 528 110, 528 138"/>
+      </g>
+
+      <!-- root -> GTM main path (brand) -->
+      <path d="M352 64 C 352 180, 392 230, 392 300" stroke="#0047bb" stroke-width="2" fill="none" marker-end="url(#ah-b)"/>
+
+      <!-- HubSpot -> HubSpot Ads Pixel (parent->child highlight) -->
+      <path d="M392 176 C 392 215, 232 215, 232 244" stroke="#0047bb" stroke-width="1.8" fill="none" marker-end="url(#ah-b)"/>
+      <!-- Vector -> GTM faint -->
+      <path d="M255 176 C 255 240, 360 250, 384 300" stroke="#9aa4b2" stroke-width="1.2" fill="none" opacity="0.7" marker-end="url(#ah-n)"/>
+
+      <!-- GTM hub fan-out (amber) -->
+      <g stroke="#f79009" stroke-width="1.6" fill="none" opacity="0.85" marker-end="url(#ah-a)">
+        <path d="M392 322 C 392 380, 110 380, 95 416"/>
+        <path d="M392 322 C 392 380, 215 388, 215 416"/>
+        <path d="M392 322 C 392 384, 335 392, 335 416"/>
+        <path d="M392 322 C 392 384, 470 392, 470 416"/>
+        <path d="M392 322 C 392 380, 590 380, 590 416"/>
+        <path d="M392 322 C 392 470, 165 500, 150 532"/>
+        <path d="M392 322 C 392 480, 300 510, 290 532"/>
+        <path d="M392 322 C 392 490, 410 514, 410 532"/>
+        <path d="M392 322 C 392 480, 510 510, 520 532"/>
+        <path d="M392 322 C 392 470, 615 500, 628 532"/>
+      </g>
+      <!-- GTM -> +N domains -->
+      <path d="M392 322 C 420 322, 590 322, 612 312" stroke="#cdd5df" stroke-width="1.3" fill="none" stroke-dasharray="4 4" marker-end="url(#ah-n)"/>
+
+      <!-- cycle: GTM arcs UP back to Vector -->
+      <path d="M384 300 C 250 270, 150 250, 200 180 C 215 158, 235 160, 252 168" stroke="#5484d1" stroke-width="1.6" fill="none" stroke-dasharray="6 5" marker-end="url(#ah-b)"/>
+    </svg>
+
+    <!-- root -->
+    <div class="node root" style="left:352px; top:42px">
+      <span class="mono">YS</span>
+      <span class="nlab"><span class="nm">Your site</span><span class="cat">checkout + marketing</span></span>
+    </div>
+
+    <!-- row 1 direct vendors -->
+    <div class="node" style="left:120px; top:157px"><span class="mono" style="background:#7856ff">S</span><span class="nlab"><span class="nm">Sentry</span><span class="cat">Error-monitoring</span></span></div>
+    <div class="node" style="left:255px; top:157px"><span class="mono" style="background:#5b53e0">V</span><span class="nlab"><span class="nm">Vector</span><span class="cat">Marketing</span></span></div>
+    <div class="node" style="left:392px; top:157px"><span class="mono" style="background:#ff7a59">H</span><span class="nlab"><span class="nm">HubSpot</span><span class="cat">Tracking</span></span></div>
+    <div class="node" style="left:528px; top:157px"><span class="mono" style="background:#1a1a1a">Q</span><span class="nlab"><span class="nm">Quantcast</span><span class="cat">Advertising</span></span></div>
+    <div class="node faded" style="left:648px; top:157px"><span class="mono" style="background:#f47b20">SF</span><span class="nlab"><span class="nm">SourceForge</span><span class="cat">Hosting</span></span></div>
+
+    <!-- HubSpot child -->
+    <div class="node" style="left:232px; top:263px"><span class="mono" style="background:#ff7a59">HA</span><span class="nlab"><span class="nm">HubSpot Ads Pixel</span><span class="cat">Tracking</span></span></div>
+
+    <!-- +N node -->
+    <div class="pillnode" style="left:648px; top:300px">+38 domains</div>
+
+    <!-- GTM hub -->
+    <div class="node hub" style="left:392px; top:311px"><span class="mono" style="background:#4285f4">G</span><span class="nlab"><span class="nm">Google Tag Manager</span><span class="cat">Tag-manager · 48 children</span></span></div>
+
+    <!-- row 3 children -->
+    <div class="node" style="left:95px; top:432px"><span class="mono" style="background:#ff9900">A</span><span class="nlab"><span class="nm">Amazon</span><span class="cat">Ecommerce</span></span></div>
+    <div class="node" style="left:215px; top:432px"><span class="mono" style="background:#fa3c4c">H</span><span class="nlab"><span class="nm">Hotjar</span><span class="cat">Analytics</span></span></div>
+    <div class="node" style="left:335px; top:432px"><span class="mono" style="background:#ff6b2c">C</span><span class="nlab"><span class="nm">Criteo</span><span class="cat">Advertising</span></span><span class="risk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m4.9 4.9 14.2 14.2"/></svg>4</span></div>
+    <div class="node" style="left:470px; top:432px"><span class="mono" style="background:#1f1f1f">I</span><span class="nlab"><span class="nm">Intercom</span><span class="cat">Support</span></span></div>
+    <div class="node" style="left:590px; top:432px"><span class="mono" style="background:#3b5998">T</span><span class="nlab"><span class="nm">Taboola</span><span class="cat">Advertising</span></span></div>
+
+    <!-- row 4 children -->
+    <div class="node" style="left:150px; top:548px"><span class="mono" style="background:#0a66c2">in</span><span class="nlab"><span class="nm">LinkedIn</span><span class="cat">Social</span></span></div>
+    <div class="node cside" style="left:290px; top:548px"><span class="mono" style="background:#0047bb">cs</span><span class="nlab"><span class="nm">cside</span><span class="cat">Security</span></span></div>
+    <div class="node" style="left:410px; top:548px"><span class="mono" style="background:#635bff">St</span><span class="nlab"><span class="nm">Stripe</span><span class="cat">Payment</span></span></div>
+    <div class="node" style="left:525px; top:548px"><span class="mono" style="background:#e8710a">GA</span><span class="nlab"><span class="nm">Analytics</span><span class="cat">Analytics</span></span></div>
+    <div class="node faded" style="left:632px; top:548px"><span class="mono" style="background:#00809d">B</span><span class="nlab"><span class="nm">Bing</span><span class="cat">Advertising</span></span></div>
+    </div>
+  </div>
+
+  <div class="legend">
+    <span class="li"><span class="ln" style="border-color:#9aa4b2"></span>Parent loads child</span>
+    <span class="li"><span class="ln" style="border-color:#0047bb"></span>cside-monitored path</span>
+    <span class="li"><span class="ln" style="border-color:#f79009"></span>High fan-out hub</span>
+    <span class="li"><span class="ln" style="border-color:#5484d1; border-top-style:dashed"></span>Cycle (arcs upward)</span>
+    <span class="li"><span class="ln" style="border-color:#cdd5df; border-top-style:dashed"></span>+N collapsed domains</span>
+  </div>
+
+  <div class="callout-row">
+    <div class="callout">
+      <span class="ico warn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v6m0 6v6m11-7h-6m-6 0H1"/></svg></span>
+      <div><p class="ct">High fan-out hubs</p><p class="cb">The loader is the parent; what it pulls in is the child. Google Tag Manager here fires 48 children, a long tail of downstream activity from a single tag.</p></div>
+    </div>
+    <div class="callout">
+      <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></span>
+      <div><p class="ct">Cycles and +N domains</p><p class="cb">Arcs bending back upward mark a script calling a domain already above it, often where unexpected data movement starts. The +N node folds unresolvable scripts into one. cside monitors it live, so you know before your customers do.</p></div>
+    </div>
+  </div>
+
+  <div class="brief-foot"><span>cside · client-side security · 2026</span><span class="pg">02 / 04</span></div>
+</section>
+
+<!-- ============================== PAGE 3 ============================== -->
+<section class="sheet" data-screen-label="03">
+  <div class="brief-top">
+    <img src="assets/cside-logo.svg" alt="cside">
+    <span class="kicker">Solution Brief · Per-Vendor Control</span>
+  </div>
+
+  <p class="eyebrow">Granular control</p>
+  <h2 class="head">Decide exactly what each vendor can do</h2>
+  <p class="body" style="max-width:700px">Every vendor on your site gets its own permission profile. Allow the capabilities a script genuinely needs and block the rest: dynamic script injection, sensitive device APIs, storage, and reads on payment or password fields. One switch blocks a vendor outright, and cside enforces the profile on every page load.</p>
+
+  <div class="vpanel">
+    <div class="vhead">
+      <span class="av">A</span>
+      <div class="vmeta"><span class="vn">Amplitude</span><span class="vc">Analytics</span></div>
+      <span class="block-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m4.9 4.9 14.2 14.2"/></svg>Block vendor</span>
+    </div>
+    <div class="vdesc">Cloud-based product-analytics platform that tracks customer behavior in digital products. <a href="#">Marketing Site</a><span class="sep">&middot;</span><a href="#">Privacy Policy</a></div>
+    <div class="vtabs"><span class="vtab active">Configuration</span><span class="vtab">Scripts</span></div>
+    <div class="vbody">
+      <div class="vcol">
+        <div class="pgroup-h first"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/><path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"/><path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/></svg><span>Resources</span></div>
+        <div class="prow on"><div class="pmeta"><div class="pn">Create and execute dynamic scripts</div><div class="pd">Loads code at runtime via script tags</div></div><div class="ptoggle"><span class="tg allow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span><span class="tg block"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m14.5 9.5-5 5"/><path d="m9.5 9.5 5 5"/></svg></span></div></div>
+        <div class="prow on"><div class="pmeta"><div class="pn">Network Requests</div><div class="pd">Make fetch and XHR calls</div></div><div class="ptoggle"><span class="tg allow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span><span class="tg block"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m14.5 9.5-5 5"/><path d="m9.5 9.5 5 5"/></svg></span></div></div>
+        <div class="prow off"><div class="pmeta"><div class="pn">Frames</div><div class="pd">Embed iframes and frames</div></div><div class="ptoggle"><span class="tg allow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span><span class="tg block"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m14.5 9.5-5 5"/><path d="m9.5 9.5 5 5"/></svg></span></div></div>
+        <div class="prow off"><div class="pmeta"><div class="pn">Objects</div><div class="pd">Embed plugins and objects</div></div><div class="ptoggle"><span class="tg allow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span><span class="tg block"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m14.5 9.5-5 5"/><path d="m9.5 9.5 5 5"/></svg></span></div></div>
+        <div class="prow on"><div class="pmeta"><div class="pn">Workers</div><div class="pd">Run web and service workers</div></div><div class="ptoggle"><span class="tg allow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span><span class="tg block"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m14.5 9.5-5 5"/><path d="m9.5 9.5 5 5"/></svg></span></div></div>
+        <div class="prow on"><div class="pmeta"><div class="pn">Images</div><div class="pd">Load external images</div></div><div class="ptoggle"><span class="tg allow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span><span class="tg block"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m14.5 9.5-5 5"/><path d="m9.5 9.5 5 5"/></svg></span></div></div>
+        <div class="pgroup-h"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg><span>Other</span></div>
+        <div class="prow off"><div class="pmeta"><div class="pn">Notifications</div><div class="pd">Send push notifications</div></div><div class="ptoggle"><span class="tg allow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span><span class="tg block"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m14.5 9.5-5 5"/><path d="m9.5 9.5 5 5"/></svg></span></div></div>
+        <div class="prow off"><div class="pmeta"><div class="pn">Payment API</div><div class="pd">Access the Payment Request API</div></div><div class="ptoggle"><span class="tg allow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span><span class="tg block"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m14.5 9.5-5 5"/><path d="m9.5 9.5 5 5"/></svg></span></div></div>
+        <div class="prow on"><div class="pmeta"><div class="pn">History API</div><div class="pd">Manipulate browser history</div></div><div class="ptoggle"><span class="tg allow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span><span class="tg block"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m14.5 9.5-5 5"/><path d="m9.5 9.5 5 5"/></svg></span></div></div>
+        <div class="prow off"><div class="pmeta"><div class="pn">Clipboard</div><div class="pd">Read or write the clipboard</div></div><div class="ptoggle"><span class="tg allow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span><span class="tg block"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m14.5 9.5-5 5"/><path d="m9.5 9.5 5 5"/></svg></span></div></div>
+      </div>
+      <div class="vcol">
+        <div class="pgroup-h first"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></svg><span>Sensitive APIs</span></div>
+        <div class="prow off"><div class="pmeta"><div class="pn">Camera</div><div class="pd">Access device camera</div></div><div class="ptoggle"><span class="tg allow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span><span class="tg block"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m14.5 9.5-5 5"/><path d="m9.5 9.5 5 5"/></svg></span></div></div>
+        <div class="prow off"><div class="pmeta"><div class="pn">Screen Capture</div><div class="pd">Capture screen contents</div></div><div class="ptoggle"><span class="tg allow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span><span class="tg block"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m14.5 9.5-5 5"/><path d="m9.5 9.5 5 5"/></svg></span></div></div>
+        <div class="prow off"><div class="pmeta"><div class="pn">Geolocation</div><div class="pd">Access device location</div></div><div class="ptoggle"><span class="tg allow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span><span class="tg block"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m14.5 9.5-5 5"/><path d="m9.5 9.5 5 5"/></svg></span></div></div>
+        <div class="prow off"><div class="pmeta"><div class="pn">Microphone</div><div class="pd">Access device microphone</div></div><div class="ptoggle"><span class="tg allow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span><span class="tg block"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m14.5 9.5-5 5"/><path d="m9.5 9.5 5 5"/></svg></span></div></div>
+        <div class="pgroup-h"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14a9 3 0 0 0 18 0V5"/><path d="M3 12a9 3 0 0 0 18 0"/></svg><span>Storage</span></div>
+        <div class="prow on"><div class="pmeta"><div class="pn">Cookies</div><div class="pd">Read or write cookies</div></div><div class="ptoggle"><span class="tg allow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span><span class="tg block"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m14.5 9.5-5 5"/><path d="m9.5 9.5 5 5"/></svg></span></div></div>
+        <div class="prow off"><div class="pmeta"><div class="pn">Local Storage</div><div class="pd">Read or write localStorage</div></div><div class="ptoggle"><span class="tg allow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span><span class="tg block"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m14.5 9.5-5 5"/><path d="m9.5 9.5 5 5"/></svg></span></div></div>
+        <div class="prow on"><div class="pmeta"><div class="pn">Session Storage</div><div class="pd">Read or write sessionStorage</div></div><div class="ptoggle"><span class="tg allow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span><span class="tg block"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m14.5 9.5-5 5"/><path d="m9.5 9.5 5 5"/></svg></span></div></div>
+        <div class="prow on"><div class="pmeta"><div class="pn">IndexedDB</div><div class="pd">Access IndexedDB databases</div></div><div class="ptoggle"><span class="tg allow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span><span class="tg block"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m14.5 9.5-5 5"/><path d="m9.5 9.5 5 5"/></svg></span></div></div>
+        <div class="pgroup-h"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect width="8" height="4" x="8" y="2" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg><span>Forms Permissions</span></div>
+        <div class="prow on"><div class="pmeta"><div class="pn">Form Access</div><div class="pd">Access form elements and data</div></div><div class="ptoggle"><span class="tg allow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span><span class="tg block"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m14.5 9.5-5 5"/><path d="m9.5 9.5 5 5"/></svg></span></div></div>
+        <div class="prow on"><div class="pmeta"><div class="pn">Email Fields</div><div class="pd">Access email input fields</div></div><div class="ptoggle"><span class="tg allow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span><span class="tg block"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m14.5 9.5-5 5"/><path d="m9.5 9.5 5 5"/></svg></span></div></div>
+        <div class="prow off"><div class="pmeta"><div class="pn">Password Fields</div><div class="pd">Access password input fields</div></div><div class="ptoggle"><span class="tg allow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span><span class="tg block"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m14.5 9.5-5 5"/><path d="m9.5 9.5 5 5"/></svg></span></div></div>
+        <div class="prow off"><div class="pmeta"><div class="pn">Hidden Fields</div><div class="pd">Access hidden form fields</div></div><div class="ptoggle"><span class="tg allow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span><span class="tg block"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m14.5 9.5-5 5"/><path d="m9.5 9.5 5 5"/></svg></span></div></div>
+      </div>
+    </div>
+    <div class="vfoot-note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg><span><b>Showing 20 of 32 controllable capabilities.</b> A blocked capability is enforced in the browser even if the vendor's code is later compromised, so a hijacked analytics script can't reach a password field or the Payment API.</span></div>
+  </div>
+
+  <div class="brief-foot"><span>cside · client-side security · 2026</span><span class="pg">03 / 04</span></div>
+</section>
+
+<!-- ============================== PAGE 4 ============================== -->
+<section class="sheet" data-screen-label="04">
+  <div class="brief-top">
+    <img src="assets/cside-logo.svg" alt="cside">
+    <span class="kicker">Solution Brief · How It Works</span>
+  </div>
+
+  <p class="eyebrow">How it works</p>
+  <h2 class="head">Hooks in first. Monitors everything. Blocks at the source.</h2>
+
+  <div class="steps">
+    <div class="step">
+      <div class="sk">Step 01</div>
+      <div class="si"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></div>
+      <h4>Script is loaded</h4>
+      <p>cside's lightweight tag sits in the &lt;head&gt; and initializes before any third-party script executes, so it sees every subsequent load, parent and child alike.</p>
+    </div>
+    <div class="step">
+      <div class="sk">Step 02</div>
+      <div class="si"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></div>
+      <h4>Behavior is monitored</h4>
+      <p>The AI engine analyzes what each script does: what data it accesses, where it sends it, whether it matches known breaches, to find attack patterns in real time.</p>
+    </div>
+    <div class="step">
+      <div class="sk">Step 03</div>
+      <div class="si"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg></div>
+      <h4>Threats are blocked</h4>
+      <p>Malicious scripts are blocked or alerted. Every event is logged for PCI audit reports, forensic investigation, and continuous compliance evidence.</p>
+    </div>
+  </div>
+
+  <p class="eyebrow">Why the browser layer needs cside</p>
+  <div class="cmp" style="margin-top:14px">
+    <div class="ch">
+      <div>Capability</div>
+      <div>WAF / CDN</div>
+      <div class="cside-h"><img src="assets/cside-shield.svg" alt="">cside</div>
+    </div>
+    <div class="cr">
+      <div class="feat">Sees how scripts execute in the browser</div>
+      <div><span class="no"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></span></div>
+      <div class="cside-c"><span class="yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span></div>
+    </div>
+    <div class="cr">
+      <div class="feat">Maps third &amp; fourth-party load chains</div>
+      <div><span class="no"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></span></div>
+      <div class="cside-c"><span class="yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span></div>
+    </div>
+    <div class="cr">
+      <div class="feat">Detects Magecart &amp; e-skimming behavior</div>
+      <div><span class="no"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></span></div>
+      <div class="cside-c"><span class="yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span></div>
+    </div>
+    <div class="cr">
+      <div class="feat">Automates PCI DSS 6.4.3 &amp; 11.6.1 evidence</div>
+      <div><span class="no"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></span></div>
+      <div class="cside-c"><span class="yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span></div>
+    </div>
+  </div>
+
+  <div class="trust">
+    <span class="tl">Trusted by compliance teams at</span>
+    <span class="tchip">eCommerce</span>
+    <span class="tchip">Crypto</span>
+    <span class="tchip">Payments</span>
+    <span class="tchip">SaaS</span>
+    <span class="tchip">Airlines</span>
+    <span class="tchip">Gaming</span>
+    <span class="tchip">Hospitality</span>
+    <span class="tchip">Healthcare</span>
+  </div>
+
+  <div class="cta">
+    <div>
+      <h3>See your own load chain in under a day</h3>
+      <p>One script tag surfaces every vendor, every fourth party, and every skimming risk on your site, with no stack rebuild.</p>
+    </div>
+    <div class="acts">
+      <a class="btn white" href="https://dash.cside.com">Start a free trial<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></svg></a>
+      <a class="btn ghost" href="https://cside.com/book-demo">Book a demo</a>
+    </div>
+  </div>
+
+  <div class="brief-foot"><span>hello@cside.com · cside.com</span><span class="pg">04 / 04</span></div>
+</section>
+
+</body>
+</html>

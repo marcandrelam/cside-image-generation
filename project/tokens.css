@@ -1,0 +1,250 @@
+/* ============================================================
+   cside design system — tokens
+   Source of truth: landing/src/styles/global.css
+   Use CSS vars directly OR via Tailwind utilities (e.g. bg-brand-500).
+   ============================================================ */
+
+@font-face {
+  font-family: "PP Neue Montreal";
+  src: url("fonts/PPNeueMontreal-Book.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: "PP Neue Montreal";
+  src: url("fonts/PPNeueMontreal-Italic.woff2") format("woff2");
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: "PP Neue Montreal";
+  src: url("fonts/PPNeueMontreal-Medium.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "PP Neue Montreal";
+  src: url("fonts/PPNeueMontreal-Bold.woff2") format("woff2");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  /* ===== TYPE ===== */
+  --font-sans: "PP Neue Montreal", ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Monaco, "Cascadia Mono",
+    Consolas, monospace;
+
+  /* Tracking */
+  --tracking-loose: 1px;        /* uppercase eyebrow labels */
+  --tracking-tight: -1.28px;    /* large display headings */
+
+  /* Text scale (px / rem) */
+  --text-xs: 0.75rem;        --text-xs-lh: 1.125rem;   /* 12 / 18 */
+  --text-sm: 0.875rem;       --text-sm-lh: 1.25rem;    /* 14 / 20 */
+  --text-md: 0.9375rem;      --text-md-lh: 1.5rem;     /* 15 / 24  body default */
+  --text-lg: 1.125rem;       --text-lg-lh: 1.75rem;    /* 18 / 28 */
+  --text-xl: 1.25rem;        --text-xl-lh: 1.875rem;   /* 20 / 30 */
+  --text-display-xs: 1.5rem;     --text-display-xs-lh: 2rem;       /* 24 / 32 */
+  --text-display-sm: 1.875rem;   --text-display-sm-lh: 2.375rem;   /* 30 / 38 */
+  --text-display-md: 2.25rem;    --text-display-md-lh: 2.75rem;    /* 36 / 44 */
+  --text-display-lg: 3rem;       --text-display-lg-lh: 3.75rem;    /* 48 / 60 */
+  --text-display-xl: 3.75rem;    --text-display-xl-lh: 4.5rem;     /* 60 / 72 */
+  --text-display-2xl: 4.5rem;    --text-display-2xl-lh: 5.25rem;   /* 72 / 84 */
+
+  /* ===== BRAND (cside blue) ===== */
+  --color-brand:     #0047bb;   /* default = -500 */
+  --color-brand-25:  #fcfaff;
+  --color-brand-50:  #e6edf8;
+  --color-brand-100: #b0c6ea;
+  --color-brand-200: #8aaae0;
+  --color-brand-300: #5484d1;
+  --color-brand-400: #336cc9;
+  --color-brand-500: #0047bb;
+  --color-brand-600: #0041aa;
+  --color-brand-700: #003285;
+  --color-brand-800: #002767;
+  --color-brand-900: #001e4f;
+  --color-brand-950: #001536;
+
+  /* ===== NEUTRALS (default text/bg/border) ===== */
+  --color-neutral-0:   #ffffff;
+  --color-neutral-25:  #fcfcfd;
+  --color-neutral-50:  #f8fafc;
+  --color-neutral-100: #eef2f6;
+  --color-neutral-200: #e3e8ef;
+  --color-neutral-300: #cdd5df;
+  --color-neutral-400: #9aa4b2;
+  --color-neutral-500: #697586;
+  --color-neutral-600: #4b5565;
+  --color-neutral-700: #364152;
+  --color-neutral-800: #202939;
+  --color-neutral-900: #121926;
+  --color-neutral-950: #0d121c;
+  --color-gray-600:    #475569;
+
+  /* ===== SEMANTIC: SUCCESS / ERROR / WARNING ===== */
+  --color-success-25:  #f6fef9;
+  --color-success-50:  #ecfdf3;
+  --color-success-100: #dcfae6;
+  --color-success-200: #abefc6;
+  --color-success-300: #75e0a7;
+  --color-success-400: #47cd89;
+  --color-success-500: #17b26a;
+  --color-success-600: #079455;
+  --color-success-700: #067647;
+  --color-success-800: #085d3a;
+  --color-success-900: #074d31;
+  --color-success-950: #053321;
+
+  --color-error-25:  #fffbfa;
+  --color-error-50:  #fef3f2;
+  --color-error-100: #fee4e2;
+  --color-error-200: #fecdca;
+  --color-error-300: #fda29b;
+  --color-error-400: #f97066;
+  --color-error-500: #f04438;
+  --color-error-600: #d92d20;
+  --color-error-700: #b42318;
+  --color-error-800: #912018;
+  --color-error-900: #7a271a;
+  --color-error-950: #55160c;
+
+  --color-warning-25:  #fffcf5;
+  --color-warning-50:  #fffaeb;
+  --color-warning-100: #fef0c7;
+  --color-warning-200: #fedf89;
+  --color-warning-300: #fec84b;
+  --color-warning-400: #fdb022;
+  --color-warning-500: #f79009;
+  --color-warning-600: #dc6803;
+  --color-warning-700: #b54708;
+  --color-warning-800: #93370d;
+  --color-warning-900: #7a2e0e;
+  --color-warning-950: #4e1d09;
+
+  /* ===== SHADOWS ===== */
+  --shadow-icon-box: 0 4px 4px rgba(0, 0, 0, 0.04),
+                     inset 0 -1px 4px rgba(0, 0, 0, 0.10);
+  --shadow-input:    0 1px 2px rgba(0, 0, 0, 0.05);
+
+  /* ===== RADII ===== */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 10px;   /* button — exact value used by site */
+  --radius-xl: 12px;   /* input */
+  --radius-2xl: 16px;
+  --radius-3xl: 24px;
+
+  /* ===== LAYOUT ===== */
+  --container-most: 1392px;     /* max content width */
+  --breakpoint-xs: 400px;
+  --breakpoint-3xl: 112rem;
+}
+
+/* ============================================================
+   Base resets that match the site
+   ============================================================ */
+html, body {
+  font-family: var(--font-sans);
+  font-weight: 400;
+  color: var(--color-neutral-900);
+  background: var(--color-neutral-0);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+button { cursor: pointer; }
+pre, code, pre *, code * { font-family: var(--font-mono); }
+
+/* ============================================================
+   Type roles — match landing/src/styles/global.css helpers
+   ============================================================ */
+
+/* Eyebrow above section headers */
+.section-label {
+  color: var(--color-brand-500);
+  margin-bottom: 0.5rem;
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  line-height: 0.875rem;       /* leading-3.5 */
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-loose);
+}
+
+/* Big section title (40px / 1.1) */
+.section-header {
+  text-align: start;
+  font-size: 2.5rem;
+  line-height: 1.1;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  color: var(--color-neutral-900);
+  text-wrap: balance;
+}
+
+/* Body description below section title */
+.section-description {
+  line-height: normal;
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  font-weight: 400;
+  color: var(--color-neutral-500);
+}
+
+/* ============================================================
+   Site-specific patterns
+   ============================================================ */
+
+/* Subtle SVG noise — used as overlay on tinted backgrounds */
+.bg-noise {
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 600 600' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.2'/%3E%3C/svg%3E");
+}
+
+/* Bordered section — the layout primitive used on every page */
+.bordered-section-outer {
+  border-bottom: 1px solid var(--color-neutral-200);
+  width: 100%;
+}
+.bordered-section-inner {
+  max-width: var(--container-most);
+  margin: 0 auto;
+  width: 80%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-left: 1px solid var(--color-neutral-200);
+  border-right: 1px solid var(--color-neutral-200);
+  padding: 4rem;
+}
+@media (max-width: 1024px) {
+  .bordered-section-inner { width: 100%; padding: 1.5rem; }
+}
+
+/* Animated underline link — used in body copy */
+.animate-link {
+  position: relative;
+  color: var(--color-brand-500);
+  text-decoration: none;
+  transition: color 200ms;
+}
+.animate-link:hover { color: var(--color-brand-600); }
+.animate-link::after {
+  content: "";
+  position: absolute;
+  bottom: 1px; left: 0;
+  width: 0; height: 1px;
+  background-color: currentColor;
+  opacity: 0.5;
+  transition: opacity 250ms, width 250ms;
+}
+.animate-link:hover::after,
+.animate-link:focus::after {
+  opacity: 1; width: 100%;
+  transition: opacity 100ms, width 100ms;
+}

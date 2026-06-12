@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<!-- @dsCard group="Brand" name="Brand" subtitle="Lockup, mark, tagline, voice rules" viewport="720x720" --><html><head><meta charset="UTF-8"><link rel="stylesheet" href="../tokens.css">
+<style>
+body { margin: 0; padding: 32px; background: var(--color-neutral-0); width: 720px; box-sizing: border-box; }
+h1 { margin: 0 0 4px; font-size: 22px; font-weight: 500; letter-spacing: -0.02em; color: var(--color-neutral-900); }
+.sub { margin: 0 0 24px; font-size: 14px; color: var(--color-neutral-500); }
+.row-label { font: 500 12px/1 var(--font-sans); text-transform: uppercase; letter-spacing: 1px; color: var(--color-neutral-500); margin: 24px 0 12px; }
+
+.logo-grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 16px; }
+.logo-cell {
+  background: white;
+  border: 1px solid var(--color-neutral-200);
+  border-radius: 16px;
+  padding: 32px;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 16px;
+  min-height: 140px;
+}
+.logo-cell.dark {
+  background: var(--color-brand-500);
+  border-color: var(--color-brand-700);
+}
+.logo-cell.dark .caption { color: rgba(255,255,255,0.7); }
+.caption { font: 500 11px/1 var(--font-mono); color: var(--color-neutral-500); text-transform: uppercase; letter-spacing: 0.5px; }
+
+.tagline-block {
+  background: var(--color-brand-500);
+  border-radius: 16px;
+  padding: 32px;
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+.tagline-block img { height: 36px; filter: brightness(0) invert(1); flex-shrink: 0; }
+.tagline-block .copy { display: flex; flex-direction: column; gap: 4px; }
+.tagline-block h2 { margin: 0; font-size: 22px; font-weight: 500; letter-spacing: -0.02em; }
+.tagline-block p { margin: 0; opacity: 0.85; font-size: 14px; }
+
+.voice {
+  background: var(--color-neutral-50);
+  border: 1px solid var(--color-neutral-200);
+  border-radius: 16px;
+  padding: 20px 24px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+.voice .col strong { display: block; font: 500 12px/1 var(--font-sans); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+.voice .yes strong { color: var(--color-success-700); }
+.voice .no strong { color: var(--color-error-700); }
+.voice ul { margin: 0; padding: 0; list-style: none; }
+.voice li { font: 14px/1.5 var(--font-sans); color: var(--color-neutral-700); padding: 4px 0; }
+.voice li::before { content: "— "; color: var(--color-neutral-400); }
+</style>
+</head><body>
+<h1>Brand · cside</h1>
+<p class="sub">Lowercase always. Security for what runs in the browser.</p>
+
+<div class="tagline-block">
+  <img src="../assets/cside-logo.svg" alt="cside">
+  <div class="copy">
+    <h2>Security for what runs in the browser.</h2>
+    <p>Understated, precise, modern enterprise. Calmly confident.</p>
+  </div>
+</div>
+
+<p class="row-label">Logo · variants</p>
+<div class="logo-grid">
+  <div class="logo-cell">
+    <img src="../assets/cside-logo.svg" alt="cside lockup" style="height: 28px;">
+    <div class="caption">Lockup · primary</div>
+  </div>
+  <div class="logo-cell">
+    <img src="../assets/cside-shield.svg" alt="cside shield" style="height: 40px;">
+    <div class="caption">Shield · favicon</div>
+  </div>
+  <div class="logo-cell dark">
+    <img src="../assets/cside-logo.svg" alt="cside on brand" style="height: 28px; filter: brightness(0) invert(1);">
+    <div class="caption">White · on brand</div>
+  </div>
+  <div class="logo-cell">
+    <img src="../assets/cside-mark-blue.svg" alt="cside mark" style="height: 64px;">
+    <div class="caption">Mark · large</div>
+  </div>
+</div>
+
+<p class="row-label">Voice</p>
+<div class="voice">
+  <div class="col yes">
+    <strong>Do</strong>
+    <ul>
+      <li>Stop scripts that steal credit cards</li>
+      <li>PCI DSS 6.4.3 &amp; 11.6.1 compliance</li>
+      <li>Plain English, active voice</li>
+      <li>Quantify: "100% historical tracking"</li>
+    </ul>
+  </div>
+  <div class="col no">
+    <strong>Don't</strong>
+    <ul>
+      <li>Comprehensive client-side protection</li>
+      <li>"Cside" or "C/Side" — always cside</li>
+      <li>FUD: "ATTACKERS ARE COMING"</li>
+      <li>Emoji in product UI</li>
+    </ul>
+  </div>
+</div>
+</body></html>

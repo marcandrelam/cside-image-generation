@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<!-- @dsCard group="Components" name="UI Kit" subtitle="Full reference — every recipe in one page" viewport="1392x2400" -->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>cside · UI Kit</title>
+<link rel="stylesheet" href="tokens.css">
+<style>
+  body { margin: 0; padding: 0; background: var(--color-neutral-25); }
+
+  /* Page chrome */
+  .topbar {
+    position: sticky; top: 0; z-index: 10;
+    display: flex; align-items: center; gap: 16px;
+    padding: 16px 32px;
+    background: white;
+    border-bottom: 1px solid var(--color-neutral-200);
+  }
+  .topbar img { height: 22px; }
+  .topbar .meta {
+    margin-left: auto;
+    display: flex; gap: 16px; align-items: center;
+    font-size: 13px; color: var(--color-neutral-500);
+  }
+
+  /* Section blocks */
+  .section { padding: 48px 32px; max-width: 1392px; margin: 0 auto; }
+  .section + .section { border-top: 1px solid var(--color-neutral-200); }
+  .section h3 {
+    margin: 0 0 24px;
+    font-size: 13px; text-transform: uppercase; letter-spacing: 1px;
+    color: var(--color-neutral-500); font-weight: 500;
+  }
+
+  .grid { display: grid; gap: 24px; }
+  .grid-3 { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+  .grid-4 { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+
+  /* Item card framing */
+  .demo {
+    background: white;
+    border: 1px solid var(--color-neutral-200);
+    border-radius: 16px;
+    padding: 24px;
+    display: flex; flex-direction: column; gap: 16px;
+    min-height: 140px;
+  }
+  .demo-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+  .demo-label {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;
+    color: var(--color-neutral-500); font-weight: 500;
+    margin: 0;
+  }
+  .demo-code {
+    font: 12px/1.5 var(--font-mono);
+    color: var(--color-neutral-600);
+    background: var(--color-neutral-50);
+    border: 1px solid var(--color-neutral-200);
+    border-radius: 8px;
+    padding: 8px 10px;
+    overflow-x: auto;
+  }
+
+  /* ============================== */
+  /* COMPONENT RECIPES (mirror SKILL.md) */
+  /* ============================== */
+
+  .btn {
+    position: relative; display: inline-block;
+    padding: 8px 12px; border-radius: 10px;
+    font: 500 14px/1 var(--font-sans);
+    text-align: center; white-space: nowrap;
+    transition: all 100ms ease-out, filter 100ms;
+    transform: translateZ(0); cursor: pointer; border: none;
+    perspective: 100px;
+  }
+  .btn:active:not(:disabled) { transform: translateZ(-4px); }
+  .btn:disabled { cursor: not-allowed; filter: brightness(0.9); opacity: 0.6; }
+
+  .btn-brand {
+    color: white;
+    background: linear-gradient(to bottom, #1D5DC3, var(--color-brand));
+    overflow: hidden;
+  }
+  .btn-brand::before {
+    content: ""; position: absolute; inset: 1px;
+    border-radius: 9px; background: var(--color-brand);
+  }
+  .btn-brand > span { position: relative; z-index: 1; }
+  .btn-brand:hover { filter: brightness(0.9); }
+
+  .btn-neutral {
+    background: white; color: var(--color-neutral-800);
+    border: 1px solid var(--color-neutral-300);
+  }
+  .btn-neutral:hover { filter: brightness(0.96); }
+
+  .btn-tertiary {
+    background: transparent; color: var(--color-neutral-600);
+  }
+  .btn-tertiary:hover { background: var(--color-neutral-100); }
+
+  /* Tags */
+  .tag {
+    display: inline-flex; align-items: center;
+    padding: 2px 6px; border-radius: 8px;
+    border: 1px solid;
+    font: 500 12px/1.4 var(--font-sans); white-space: nowrap;
+  }
+  .tag-brand   { background: var(--color-brand-50);   border-color: var(--color-brand-200);   color: var(--color-brand-700); }
+  .tag-neutral { background: var(--color-neutral-50); border-color: var(--color-neutral-200); color: var(--color-neutral-700); }
+  .tag-success { background: var(--color-success-50); border-color: var(--color-success-200); color: var(--color-success-700); }
+  .tag-error   { background: var(--color-error-50);   border-color: var(--color-error-200);   color: var(--color-error-700); }
+  .tag-warning { background: var(--color-warning-50); border-color: var(--color-warning-200); color: var(--color-warning-700); }
+
+  /* Inputs */
+  .input {
+    display: flex; align-items: center; gap: 8px;
+    width: 100%; padding: 8px 12px;
+    border-radius: 12px;
+    border: 1px solid var(--color-neutral-200);
+    background: white;
+    box-shadow: var(--shadow-input);
+    outline: 2px solid transparent;
+    transition: outline-color 200ms;
+  }
+  .input:focus-within { outline-color: color-mix(in srgb, var(--color-brand-500) 20%, transparent); }
+  .input input {
+    flex: 1; border: none; outline: none; background: transparent;
+    font: 500 15px/1.5 var(--font-sans);
+    color: var(--color-neutral-700);
+  }
+  .input input::placeholder { color: var(--color-neutral-500); font-weight: 400; }
+  .input svg { color: var(--color-neutral-400); }
+
+  /* Icon box */
+  .icon-box {
+    width: 40px; height: 40px; flex-shrink: 0;
+    display: grid; place-items: center;
+    background: white; border-radius: 10px;
+    box-shadow: var(--shadow-icon-box);
+    color: var(--color-brand-500);
+  }
+
+  /* Feature card */
+  .feature {
+    background: white;
+    border: 1px solid var(--color-neutral-200);
+    border-radius: 16px;
+    padding: 24px;
+    display: flex; flex-direction: column; gap: 12px;
+  }
+  .feature h4 { margin: 0; font-size: 18px; font-weight: 500; color: var(--color-neutral-900); }
+  .feature p  { margin: 0; font-size: 15px; line-height: 1.5; color: var(--color-neutral-500); }
+
+  /* Status */
+  .status { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; color: var(--color-neutral-700); }
+  .status-dot {
+    width: 8px; height: 8px; border-radius: 999px;
+    background: var(--color-success-500);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-success-500) 25%, transparent);
+  }
+
+  /* Press logos */
+  .press-logo { height: 28px; opacity: 0.6; filter: grayscale(1); transition: opacity 150ms; }
+  .press-logo:hover { opacity: 1; }
+
+  /* Color swatch */
+  .swatch {
+    border: 1px solid var(--color-neutral-200);
+    border-radius: 12px;
+    overflow: hidden;
+    display: flex; flex-direction: column;
+  }
+  .swatch-fill { aspect-ratio: 16 / 9; }
+  .swatch-meta {
+    padding: 10px 12px;
+    display: flex; flex-direction: column; gap: 2px;
+    background: white;
+  }
+  .swatch-name { font-size: 13px; font-weight: 500; color: var(--color-neutral-900); }
+  .swatch-hex  { font: 11px/1 var(--font-mono); color: var(--color-neutral-500); text-transform: uppercase; }
+
+  /* Type ramp row */
+  .type-row {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    gap: 24px;
+    align-items: baseline;
+    padding: 16px 0;
+    border-top: 1px solid var(--color-neutral-200);
+  }
+  .type-row:first-child { border-top: none; }
+  .type-meta { font: 12px/1.4 var(--font-mono); color: var(--color-neutral-500); }
+  .type-meta strong { color: var(--color-neutral-900); display: block; font-family: var(--font-sans); font-weight: 500; font-size: 13px; margin-bottom: 4px; }
+
+  /* Hero demo */
+  .hero-demo {
+    background: white;
+    border: 1px solid var(--color-neutral-200);
+    border-radius: 24px;
+    padding: 64px 48px;
+    text-align: center;
+    display: flex; flex-direction: column; align-items: center; gap: 20px;
+  }
+  .hero-demo h1 {
+    margin: 0; font-size: 48px; line-height: 1.1; font-weight: 500;
+    letter-spacing: -0.02em; color: var(--color-neutral-900);
+    text-wrap: balance; max-width: 720px;
+  }
+  .hero-demo h1 .accent { color: var(--color-brand-500); }
+  .hero-demo p { margin: 0; max-width: 560px; color: var(--color-neutral-500); font-size: 18px; line-height: 1.55; }
+  .hero-demo .ctas { display: flex; gap: 12px; }
+  .hero-demo .subtext { font-size: 12px; color: var(--color-neutral-500); }
+
+  /* Footer demo */
+  .footer-demo {
+    background: var(--color-brand-500);
+    color: white;
+    border-radius: 16px;
+    padding: 32px;
+    display: flex; gap: 32px; align-items: flex-start; justify-content: space-between;
+    flex-wrap: wrap;
+  }
+  .footer-demo .tagline { max-width: 220px; font-size: 14px; line-height: 1.5; opacity: 0.95; }
+  .footer-demo a { color: white; text-decoration: none; opacity: 0.85; font-size: 14px; display: block; padding: 4px 0; }
+  .footer-demo a:hover { opacity: 1; }
+  .footer-demo .col strong { font-size: 13px; opacity: 0.7; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 500; display: block; margin-bottom: 8px; }
+
+  /* Section pattern demo (label + heading + description) */
+  .pattern-stack { display: flex; flex-direction: column; gap: 12px; max-width: 720px; }
+
+  /* The bordered section primitive */
+  .bordered-demo {
+    background: var(--color-neutral-25);
+    border-top: 1px solid var(--color-neutral-200);
+    border-bottom: 1px solid var(--color-neutral-200);
+    padding: 16px 0;
+  }
+  .bordered-demo-inner {
+    max-width: 1200px; margin: 0 auto; width: 80%;
+    border-left: 1px solid var(--color-neutral-200);
+    border-right: 1px solid var(--color-neutral-200);
+    padding: 48px;
+    background: white;
+    display: flex; flex-direction: column; align-items: center; gap: 16px;
+  }
+
+  /* Tone pill */
+  .pill-tone {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 10px; border-radius: 999px;
+    font: 500 12px/1 var(--font-sans);
+    background: var(--color-brand-50); color: var(--color-brand-700);
+    border: 1px solid var(--color-brand-200);
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== TOPBAR ===== -->
+<div class="topbar">
+  <img src="assets/cside-logo.svg" alt="cside">
+  <span class="tag tag-neutral">UI Kit</span>
+  <div class="meta">
+    <span>PP Neue Montreal</span>
+    <span>·</span>
+    <span>Brand #0047bb</span>
+  </div>
+</div>
+
+<!-- ===== HERO PATTERN ===== -->
+<section class="section">
+  <h3>Hero pattern</h3>
+  <div class="hero-demo">
+    <span class="tag tag-brand">PCI DSS 4.0.1</span>
+    <h1>Security<span class="accent"> for what runs in the browser</span></h1>
+    <p>Your WAF protects the server. cside protects your customers. Stop script-based attacks, ensure PCI compliance, detect AI agents and prevent fraud — all from a single platform.</p>
+    <div class="ctas">
+      <button class="btn btn-brand"><span>Start for free</span></button>
+      <button class="btn btn-neutral">Talk to an expert</button>
+    </div>
+    <p class="subtext">Start free, or try Business with a 14-day trial.</p>
+  </div>
+</section>
+
+<!-- ===== TYPE ===== -->
+<section class="section">
+  <h3>Type ramp · PP Neue Montreal</h3>
+  <div class="demo" style="padding: 32px;">
+    <div class="type-row">
+      <div class="type-meta"><strong>Display 2xl</strong>72 / 84 · 500 · -2%</div>
+      <div style="font: 500 72px/84px var(--font-sans); letter-spacing: -0.02em;">Browser security</div>
+    </div>
+    <div class="type-row">
+      <div class="type-meta"><strong>Display lg (h1)</strong>48 / 60 · 500 · -2%</div>
+      <div style="font: 500 48px/60px var(--font-sans); letter-spacing: -0.02em;">Stop the forgotten backdoor</div>
+    </div>
+    <div class="type-row">
+      <div class="type-meta"><strong>Display md</strong>36 / 44 · 500 · -2%</div>
+      <div style="font: 500 36px/44px var(--font-sans); letter-spacing: -0.02em;">Why cside succeeds where others fail</div>
+    </div>
+    <div class="type-row">
+      <div class="type-meta"><strong>Section header</strong>40 / 44 · 500 · balanced</div>
+      <div class="section-header">Protect web users from attacks, protect your company from fraud</div>
+    </div>
+    <div class="type-row">
+      <div class="type-meta"><strong>Display sm</strong>30 / 38 · 500</div>
+      <div style="font: 500 30px/38px var(--font-sans);">Real-time protection</div>
+    </div>
+    <div class="type-row">
+      <div class="type-meta"><strong>Body large</strong>18 / 28 · 400</div>
+      <div style="font: 400 18px/28px var(--font-sans); color: var(--color-neutral-700);">Inspects every script before it reaches users, with zero latency.</div>
+    </div>
+    <div class="type-row">
+      <div class="type-meta"><strong>Body (default)</strong>15 / 24 · 400</div>
+      <div style="font: 400 15px/24px var(--font-sans); color: var(--color-neutral-700);">Most security tools can't see inside the browser, leaving users exposed to e-skimming, ad injections, and dynamic attacks. cside shields them from threats that bypass CSP, crawlers, and agents.</div>
+    </div>
+    <div class="type-row">
+      <div class="type-meta"><strong>Body small</strong>14 / 20 · 400</div>
+      <div style="font: 400 14px/20px var(--font-sans); color: var(--color-neutral-700);">Used in nav, footer, fine print, table cells.</div>
+    </div>
+    <div class="type-row">
+      <div class="type-meta"><strong>Eyebrow label</strong>14 / 14 · 500 · UPPER · +1px</div>
+      <div class="section-label">Client-side platform</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== SECTION COPY STACK ===== -->
+<section class="section">
+  <h3>Section copy stack — label + header + description</h3>
+  <div class="demo" style="padding: 40px;">
+    <div class="pattern-stack">
+      <p class="section-label" style="margin: 0;">We solved the puzzle</p>
+      <h2 class="section-header" style="margin: 0;">The missing piece in application security</h2>
+      <p class="section-description">Most security tools stop at the server. cside watches what every third-party script actually does in your customer's browser — the dimension everyone else skips.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===== COLOR ===== -->
+<section class="section">
+  <h3>Brand</h3>
+  <div class="grid grid-4">
+    <div class="swatch"><div class="swatch-fill" style="background:var(--color-brand-25)"></div><div class="swatch-meta"><span class="swatch-name">brand-25</span><span class="swatch-hex">#fcfaff</span></div></div>
+    <div class="swatch"><div class="swatch-fill" style="background:var(--color-brand-50)"></div><div class="swatch-meta"><span class="swatch-name">brand-50</span><span class="swatch-hex">#e6edf8</span></div></div>
+    <div class="swatch"><div class="swatch-fill" style="background:var(--color-brand-100)"></div><div class="swatch-meta"><span class="swatch-name">brand-100</span><span class="swatch-hex">#b0c6ea</span></div></div>
+    <div class="swatch"><div class="swatch-fill" style="background:var(--color-brand-200)"></div><div class="swatch-meta"><span class="swatch-name">brand-200</span><span class="swatch-hex">#8aaae0</span></div></div>
+    <div class="swatch"><div class="swatch-fill" style="background:var(--color-brand-300)"></div><div class="swatch-meta"><span class="swatch-name">brand-300</span><span class="swatch-hex">#5484d1</span></div></div>
+    <div class="swatch"><div class="swatch-fill" style="background:var(--color-brand-400)"></div><div class="swatch-meta"><span class="swatch-name">brand-400</span><span class="swatch-hex">#336cc9</span></div></div>
+    <div class="swatch"><div class="swatch-fill" style="background:var(--color-brand-500)"></div><div class="swatch-meta"><span class="swatch-name">brand-500 ★</span><span class="swatch-hex">#0047bb</span></div></div>
+    <div class="swatch"><div class="swatch-fill" style="background:var(--color-brand-600)"></div><div class="swatch-meta"><span class="swatch-name">brand-600</span><span class="swatch-hex">#0041aa</span></div></div>
+    <div class="swatch"><div class="swatch-fill" style="background:var(--color-brand-700)"></div><div class="swatch-meta"><span class="swatch-name">brand-700</span><span class="swatch-hex">#003285</span></div></div>
+    <div class="swatch"><div class="swatch-fill" style="background:var(--color-brand-800)"></div><div class="swatch-meta"><span class="swatch-name">brand-800</span><span class="swatch-hex">#002767</span></div></div>
+    <div class="swatch"><div class="swatch-fill" style="background:var(--color-brand-900)"></div><div class="swatch-meta"><span class="swatch-name">brand-900</span><span class="swatch-hex">#001e4f</span></div></div>
+    <div class="swatch"><div class="swatch-fill" style="background:var(--color-brand-950)"></div><div class="swatch-meta"><span class="swatch-name">brand-950</span><span class="swatch-hex">#001536</span></div></div>
+  </div>
+</section>
+
+<section class="section">
+  <h3>Neutral</h3>
+  <div class="grid grid-4">
+    <div class="swatch"><div class="swatch-fill" style="background:var(--color-neutral-0); border-bottom: 1px solid var(--color-neutral-200);"></div><div class="swatch-meta"><span class="swatch-name">neutral-0</span><span class="swatch-hex">#ffffff</span></div></div>
+    <div class="swatch"><div class="swatch-fill" style="background:var(--color-neutral-25)"></div><div class="swatch-meta"><span class="swatch-name">neutral-25</span><span class="swatch-hex">#fcfcfd</span></div></div>
+    <div class="swatch"><div class="swatch-fill" style="background:var(--color-neutral-50)"></div><div class="swatch-meta"><span class="swatch-name">neutral-50</span><span class="swatch-hex">#f8fafc</span></div></div>
+    <div class="swatch"><div class="swatch-fill" style="background:var(--color-neutral-100)"></div><div class="swatch-meta"><span class="swatch-name">neutral-100</span><span class="swatch-hex">#eef2f6</span></div></div>
+    <div class="swatch"><div class="swatch-fill" style="background:var(--color-neutral-200)"></div><div class="swatch-meta"><span class="swatch-name">neutral-200 ★ borders</span><span class="swatch-hex">#e3e8ef</span></div></div>
+    <div class="swatch"><div class="swatch-fill" style="background:var(--color-neutral-300)"></div><div class="swatch-meta"><span class="swatch-name">neutral-300</span><span class="swatch-hex">#cdd5df</span></div></div>
+    <div class="swatch"><div class="swatch-fill" style="background:var(--color-neutral-400)"></div><div class="swatch-meta"><span class="swatch-name">neutral-400</span><span class="swatch-hex">#9aa4b2</span></div></div>
+    <div class="swatch"><div class="swatch-fill" style="background:var(--color-neutral-500)"></div><div class="swatch-meta"><span class="swatch-name">neutral-500 ★ muted</span><span class="swatch-hex">#697586</span></div></div>
+    <div class="swatch"><div class="swatch-fill" style="background:var(--color-neutral-600)"></div><div class="swatch-meta"><span class="swatch-name">neutral-600</span><span class="swatch-hex">#4b5565</span></div></div>
+    <div class="swatch"><div class="swatch-fill" style="background:var(--color-neutral-700)"></div><div class="swatch-meta"><span class="swatch-name">neutral-700 ★ body</span><span class="swatch-hex">#364152</span></div></div>
+    <div class="swatch"><div class="swatch-fill" style="background:var(--color-neutral-800)"></div><div class="swatch-meta"><span class="swatch-name">neutral-800</span><span class="swatch-hex">#202939</span></div></div>
+    <div class="swatch"><div class="swatch-fill" style="background:var(--color-neutral-900)"></div><div class="swatch-meta"><span class="swatch-name">neutral-900 ★ headings</span><span class="swatch-hex">#121926</span></div></div>
+    <div class="swatch"><div class="swatch-fill" style="background:var(--color-neutral-950)"></div><div class="swatch-meta"><span class="swatch-name">neutral-950</span><span class="swatch-hex">#0d121c</span></div></div>
+  </div>
+</section>
+
+<section class="section">
+  <h3>Semantic — Success / Error / Warning (500 + 700 + 50)</h3>
+  <div class="grid grid-3">
+    <div class="swatch"><div class="swatch-fill" style="background:var(--color-success-500)"></div><div class="swatch-meta"><span class="swatch-name">success-500</span><span class="swatch-hex">#17b26a</span></div></div>
+    <div class="swatch"><div class="swatch-fill" style="background:var(--color-error-500)"></div><div class="swatch-meta"><span class="swatch-name">error-500</span><span class="swatch-hex">#f04438</span></div></div>
+    <div class="swatch"><div class="swatch-fill" style="background:var(--color-warning-500)"></div><div class="swatch-meta"><span class="swatch-name">warning-500</span><span class="swatch-hex">#f79009</span></div></div>
+  </div>
+</section>
+
+<!-- ===== BUTTONS ===== -->
+<section class="section">
+  <h3>Buttons</h3>
+  <div class="grid grid-3">
+    <div class="demo">
+      <p class="demo-label">Primary · brand</p>
+      <div class="demo-row">
+        <button class="btn btn-brand"><span>Start for free</span></button>
+        <button class="btn btn-brand"><span>Book a demo</span></button>
+        <button class="btn btn-brand" disabled><span>Disabled</span></button>
+      </div>
+      <p class="demo-code">.btn.btn-brand</p>
+    </div>
+    <div class="demo">
+      <p class="demo-label">Secondary · neutral</p>
+      <div class="demo-row">
+        <button class="btn btn-neutral">Talk to an expert</button>
+        <button class="btn btn-neutral">Learn more</button>
+        <button class="btn btn-neutral" disabled>Disabled</button>
+      </div>
+      <p class="demo-code">.btn.btn-neutral</p>
+    </div>
+    <div class="demo">
+      <p class="demo-label">Tertiary · ghost</p>
+      <div class="demo-row">
+        <button class="btn btn-tertiary">Cancel</button>
+        <button class="btn btn-tertiary">Skip</button>
+        <button class="btn btn-tertiary">View all →</button>
+      </div>
+      <p class="demo-code">.btn.btn-tertiary</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===== TAGS ===== -->
+<section class="section">
+  <h3>Tags &amp; status</h3>
+  <div class="grid grid-3">
+    <div class="demo">
+      <p class="demo-label">Tag variants</p>
+      <div class="demo-row">
+        <span class="tag tag-brand">PCI DSS 4.0.1</span>
+        <span class="tag tag-neutral">Beta</span>
+        <span class="tag tag-success">Operational</span>
+        <span class="tag tag-warning">Action needed</span>
+        <span class="tag tag-error">Critical</span>
+      </div>
+      <p class="demo-code">.tag.tag-{brand|neutral|success|warning|error}</p>
+    </div>
+    <div class="demo">
+      <p class="demo-label">Status indicator</p>
+      <div class="demo-row">
+        <span class="status"><span class="status-dot"></span>All systems operational</span>
+      </div>
+      <div class="demo-row">
+        <span class="status"><span class="status-dot" style="background:var(--color-warning-500); box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-warning-500) 25%, transparent);"></span>Degraded performance</span>
+      </div>
+      <div class="demo-row">
+        <span class="status"><span class="status-dot" style="background:var(--color-error-500); box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-error-500) 25%, transparent);"></span>Active incident</span>
+      </div>
+    </div>
+    <div class="demo">
+      <p class="demo-label">Pill — section eyebrow alt</p>
+      <div class="demo-row">
+        <span class="pill-tone">Client-side Security</span>
+        <span class="pill-tone">PCI Shield</span>
+        <span class="pill-tone">Privacy Watch</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== INPUTS ===== -->
+<section class="section">
+  <h3>Inputs</h3>
+  <div class="grid grid-3">
+    <div class="demo">
+      <p class="demo-label">Default</p>
+      <label class="input">
+        <input type="text" placeholder="yoursite.com">
+      </label>
+    </div>
+    <div class="demo">
+      <p class="demo-label">With leading icon (Lucide globe)</p>
+      <label class="input">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        <input type="text" placeholder="Check my site">
+      </label>
+    </div>
+    <div class="demo">
+      <p class="demo-label">With trailing CTA</p>
+      <label class="input">
+        <input type="email" placeholder="you@company.com">
+        <button class="btn btn-brand" style="padding: 4px 10px; font-size: 13px;"><span>Subscribe</span></button>
+      </label>
+    </div>
+  </div>
+</section>
+
+<!-- ===== ICON BOXES + FEATURES ===== -->
+<section class="section">
+  <h3>Feature icon boxes &amp; cards</h3>
+  <div class="grid grid-3">
+    <div class="feature">
+      <div class="icon-box">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></svg>
+      </div>
+      <h4>Real-time protection</h4>
+      <p>Inspects every script before it reaches users, with zero latency.</p>
+    </div>
+    <div class="feature">
+      <div class="icon-box">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
+      </div>
+      <h4>Complete visibility</h4>
+      <p>Analyzes exactly what each visitor's browser executes — no estimation, no sampling.</p>
+    </div>
+    <div class="feature">
+      <div class="icon-box">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+      </div>
+      <h4>Bypass protection</h4>
+      <p>Defeats CSP evasion, shadow DOM tricks, and obfuscated code attackers use to slip past gateways.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===== BORDERED SECTION PRIMITIVE ===== -->
+<section class="section">
+  <h3>Bordered section · the layout primitive</h3>
+  <div class="bordered-demo">
+    <div class="bordered-demo-inner">
+      <p class="section-label" style="margin:0">Built for all</p>
+      <h2 class="section-header" style="margin:0; text-align: center;">Compatible with your favorite tools</h2>
+      <p class="section-description" style="text-align: center; max-width: 540px;">A single script. No code changes. Works with every common stack and CDN out of the box.</p>
+    </div>
+  </div>
+  <p class="demo-code" style="margin-top: 12px;">.bordered-section-outer &gt; .bordered-section-inner — every page is a stack of these</p>
+</section>
+
+<!-- ===== PRESS ===== -->
+<section class="section">
+  <h3>Press strip · "Featured on"</h3>
+  <div class="demo" style="padding: 32px;">
+    <p class="section-label" style="margin: 0; text-align: center;">Featured on</p>
+    <div class="demo-row" style="justify-content: center; gap: 48px; margin-top: 16px;">
+      <img class="press-logo" src="assets/press-forbes.webp" alt="Forbes">
+      <img class="press-logo" src="assets/press-techcrunch.webp" alt="TechCrunch">
+      <img class="press-logo" src="assets/press-wired.webp" alt="Wired">
+      <img class="press-logo" src="assets/press-hackernews.webp" alt="Hacker News">
+    </div>
+  </div>
+</section>
+
+<!-- ===== FOOTER PATTERN ===== -->
+<section class="section">
+  <h3>Footer · brand slab</h3>
+  <div class="footer-demo">
+    <div>
+      <img src="assets/cside-logo.svg" alt="cside" style="height: 28px; filter: brightness(0) invert(1); margin-bottom: 16px;">
+      <p class="tagline">Security for what runs in the browser.</p>
+      <p style="margin-top: 16px; font-size: 14px; opacity: 0.8;">hello@cside.com</p>
+    </div>
+    <div class="col">
+      <strong>Product</strong>
+      <a href="#">Client-side Security</a>
+      <a href="#">PCI Shield</a>
+      <a href="#">Privacy Watch</a>
+      <a href="#">Chargeback Evidence</a>
+    </div>
+    <div class="col">
+      <strong>Company</strong>
+      <a href="#">About</a>
+      <a href="#">Careers</a>
+      <a href="#">Press</a>
+      <a href="#">Contact</a>
+    </div>
+    <div class="col">
+      <strong>Resources</strong>
+      <a href="#">Blog</a>
+      <a href="#">Learning</a>
+      <a href="#">Glossary</a>
+      <a href="#">Status</a>
+    </div>
+  </div>
+</section>
+
+<!-- ===== LOGO ===== -->
+<section class="section">
+  <h3>Logo &amp; mark</h3>
+  <div class="grid grid-4">
+    <div class="demo" style="align-items:center; justify-content:center; min-height:120px;">
+      <img src="assets/cside-logo.svg" alt="cside" style="height: 32px;">
+      <p class="demo-label" style="text-align:center;">Lockup · primary</p>
+    </div>
+    <div class="demo" style="align-items:center; justify-content:center; min-height:120px;">
+      <img src="assets/cside-shield.svg" alt="cside shield" style="height: 40px;">
+      <p class="demo-label" style="text-align:center;">Shield · favicon</p>
+    </div>
+    <div class="demo" style="align-items:center; justify-content:center; min-height:120px;">
+      <img src="assets/cside-text.svg" alt="cside wordmark" style="height: 24px;">
+      <p class="demo-label" style="text-align:center;">Wordmark only</p>
+    </div>
+    <div class="demo" style="align-items:center; justify-content:center; min-height:120px; background: white;">
+      <img src="assets/cside-mark-blue.svg" alt="cside mark" style="height: 80px;">
+      <p class="demo-label" style="text-align:center;">Brand mark · large</p>
+    </div>
+  </div>
+</section>
+
+</body>
+</html>

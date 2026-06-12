@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<!-- @dsCard group="Spacing" name="Spacing & Shadows" subtitle="Radii, 4px scale, two shadow tokens" viewport="720x880" --><html><head><meta charset="UTF-8"><link rel="stylesheet" href="../tokens.css">
+<style>
+body { margin: 0; padding: 32px; background: var(--color-neutral-0); width: 720px; box-sizing: border-box; }
+h1 { margin: 0 0 4px; font-size: 22px; font-weight: 500; letter-spacing: -0.02em; color: var(--color-neutral-900); }
+.sub { margin: 0 0 24px; font-size: 14px; color: var(--color-neutral-500); }
+.row-label { font: 500 12px/1 var(--font-sans); text-transform: uppercase; letter-spacing: 1px; color: var(--color-neutral-500); margin: 24px 0 12px; }
+
+/* radii */
+.radii { display: flex; gap: 16px; align-items: flex-end; }
+.radii .box { background: var(--color-brand-500); width: 64px; height: 64px; position: relative; }
+.radii .box span { position: absolute; bottom: -22px; left: 0; right: 0; text-align: center; font: 500 12px/1 var(--font-mono); color: var(--color-neutral-500); }
+
+/* spacing */
+.space { display: flex; gap: 12px; align-items: center; padding: 20px 0; }
+.space .bar { background: var(--color-brand-500); height: 12px; border-radius: 2px; }
+.space .label { font: 12px/1 var(--font-mono); color: var(--color-neutral-500); width: 80px; flex-shrink: 0; }
+
+/* shadows */
+.shadows { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+.shadow-card { background: white; border-radius: 12px; padding: 24px; text-align: center; }
+.shadow-card .icon { width: 40px; height: 40px; margin: 0 auto 12px; background: white; border-radius: 10px; display: grid; place-items: center; box-shadow: var(--shadow-icon-box); color: var(--color-brand-500); }
+.shadow-card .input-demo { width: 100%; max-width: 240px; margin: 0 auto; padding: 8px 12px; border-radius: 12px; border: 1px solid var(--color-neutral-200); box-shadow: var(--shadow-input); background: white; font: 14px/1.5 var(--font-sans); color: var(--color-neutral-500); text-align: left; }
+.shadow-card .name { font: 500 12px/1 var(--font-mono); color: var(--color-neutral-700); margin-top: 12px; }
+.shadow-card .desc { font: 11px/1.4 var(--font-sans); color: var(--color-neutral-500); margin-top: 4px; }
+
+.bordered-box { background: white; border: 1px solid var(--color-neutral-200); border-radius: 12px; padding: 16px; }
+</style>
+</head><body>
+<h1>Spacing, radii, shadows</h1>
+<p class="sub">Tailwind 4px scale. Hairline 1px borders, no card shadows. Rare, subtle elevation only on icon boxes and inputs.</p>
+
+<p class="row-label">Radii</p>
+<div class="radii">
+  <div class="box" style="border-radius: 6px;"><span>sm · 6</span></div>
+  <div class="box" style="border-radius: 8px;"><span>md · 8 (tag)</span></div>
+  <div class="box" style="border-radius: 10px;"><span>lg · 10 (button)</span></div>
+  <div class="box" style="border-radius: 12px;"><span>xl · 12 (input)</span></div>
+  <div class="box" style="border-radius: 16px;"><span>2xl · 16 (card)</span></div>
+  <div class="box" style="border-radius: 24px;"><span>3xl · 24</span></div>
+</div>
+
+<p class="row-label" style="margin-top: 36px;">Spacing rhythm · 4px scale</p>
+<div class="bordered-box">
+  <div class="space"><div class="label">4 · gap-1</div><div class="bar" style="width: 4px;"></div></div>
+  <div class="space"><div class="label">8 · gap-2</div><div class="bar" style="width: 8px;"></div></div>
+  <div class="space"><div class="label">12 · gap-3</div><div class="bar" style="width: 12px;"></div></div>
+  <div class="space"><div class="label">16 · gap-4</div><div class="bar" style="width: 16px;"></div></div>
+  <div class="space"><div class="label">24 · gap-6</div><div class="bar" style="width: 24px;"></div></div>
+  <div class="space"><div class="label">48 · gap-12</div><div class="bar" style="width: 48px;"></div></div>
+  <div class="space"><div class="label">64 · gap-16</div><div class="bar" style="width: 64px;"></div></div>
+</div>
+
+<p class="row-label">Shadows · only two exist</p>
+<div class="shadows">
+  <div class="shadow-card" style="background: var(--color-neutral-50);">
+    <div class="icon">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></svg>
+    </div>
+    <div class="name">--shadow-icon-box</div>
+    <div class="desc">Subtle inset on white feature icons</div>
+  </div>
+  <div class="shadow-card" style="background: var(--color-neutral-50);">
+    <div class="input-demo">yoursite.com</div>
+    <div class="name" style="margin-top: 16px;">--shadow-input</div>
+    <div class="desc">Single soft drop on inputs</div>
+  </div>
+</div>
+</body></html>

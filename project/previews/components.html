@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<!-- @dsCard group="Components" name="Components" subtitle="Buttons, tags, inputs, status, feature cards" viewport="720x760" --><html><head><meta charset="UTF-8"><link rel="stylesheet" href="../tokens.css">
+<style>
+body { margin: 0; padding: 32px; background: var(--color-neutral-0); width: 720px; box-sizing: border-box; }
+h1 { margin: 0 0 4px; font-size: 22px; font-weight: 500; letter-spacing: -0.02em; color: var(--color-neutral-900); }
+.sub { margin: 0 0 24px; font-size: 14px; color: var(--color-neutral-500); }
+.row-label { font: 500 12px/1 var(--font-sans); text-transform: uppercase; letter-spacing: 1px; color: var(--color-neutral-500); margin: 24px 0 12px; }
+.row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; padding: 16px; background: var(--color-neutral-25); border: 1px solid var(--color-neutral-200); border-radius: 12px; }
+
+/* Buttons */
+.btn { position: relative; display: inline-block; padding: 8px 12px; border-radius: 10px; font: 500 14px/1 var(--font-sans); text-align: center; white-space: nowrap; transition: all 100ms ease-out; cursor: pointer; border: none; }
+.btn:active:not(:disabled) { transform: translateY(1px); }
+.btn-brand { color: white; background: linear-gradient(to bottom, #1D5DC3, var(--color-brand)); overflow: hidden; }
+.btn-brand::before { content: ""; position: absolute; inset: 1px; border-radius: 9px; background: var(--color-brand); }
+.btn-brand > span { position: relative; z-index: 1; }
+.btn-brand:hover { filter: brightness(0.9); }
+.btn-neutral { background: white; color: var(--color-neutral-800); border: 1px solid var(--color-neutral-300); }
+.btn-tertiary { background: transparent; color: var(--color-neutral-600); }
+
+/* Tags */
+.tag { display: inline-flex; align-items: center; padding: 2px 6px; border-radius: 8px; border: 1px solid; font: 500 12px/1.4 var(--font-sans); white-space: nowrap; }
+.tag-brand   { background: var(--color-brand-50);   border-color: var(--color-brand-200);   color: var(--color-brand-700); }
+.tag-neutral { background: var(--color-neutral-50); border-color: var(--color-neutral-200); color: var(--color-neutral-700); }
+.tag-success { background: var(--color-success-50); border-color: var(--color-success-200); color: var(--color-success-700); }
+.tag-error   { background: var(--color-error-50);   border-color: var(--color-error-200);   color: var(--color-error-700); }
+.tag-warning { background: var(--color-warning-50); border-color: var(--color-warning-200); color: var(--color-warning-700); }
+
+/* Input */
+.input { display: flex; align-items: center; gap: 8px; max-width: 320px; padding: 8px 12px; border-radius: 12px; border: 1px solid var(--color-neutral-200); background: white; box-shadow: var(--shadow-input); }
+.input input { flex: 1; border: none; outline: none; background: transparent; font: 500 15px/1.5 var(--font-sans); color: var(--color-neutral-700); width: 100%; }
+.input input::placeholder { color: var(--color-neutral-500); font-weight: 400; }
+.input svg { color: var(--color-neutral-400); }
+
+/* Status */
+.status { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; color: var(--color-neutral-700); }
+.status-dot { width: 8px; height: 8px; border-radius: 999px; background: var(--color-success-500); box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-success-500) 25%, transparent); }
+
+/* Feature cards */
+.features { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+.feature { background: white; border: 1px solid var(--color-neutral-200); border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 10px; }
+.feature .icon-box { width: 36px; height: 36px; display: grid; place-items: center; background: white; border-radius: 10px; box-shadow: var(--shadow-icon-box); color: var(--color-brand-500); }
+.feature h4 { margin: 0; font-size: 16px; font-weight: 500; color: var(--color-neutral-900); }
+.feature p { margin: 0; font-size: 14px; line-height: 1.45; color: var(--color-neutral-500); }
+</style>
+</head><body>
+<h1>Components</h1>
+<p class="sub">Button is the signature element — gradient + 1px inner bevel. Borders, not shadows, frame everything else.</p>
+
+<p class="row-label">Buttons</p>
+<div class="row">
+  <button class="btn btn-brand"><span>Start for free</span></button>
+  <button class="btn btn-neutral">Talk to an expert</button>
+  <button class="btn btn-tertiary">Cancel</button>
+</div>
+
+<p class="row-label">Tags · 5 tones</p>
+<div class="row">
+  <span class="tag tag-brand">PCI DSS 4.0.1</span>
+  <span class="tag tag-neutral">Beta</span>
+  <span class="tag tag-success">Operational</span>
+  <span class="tag tag-warning">Action needed</span>
+  <span class="tag tag-error">Critical</span>
+</div>
+
+<p class="row-label">Input</p>
+<div class="row">
+  <label class="input">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+    <input type="text" placeholder="yoursite.com">
+  </label>
+  <span class="status"><span class="status-dot"></span>All systems operational</span>
+</div>
+
+<p class="row-label">Feature card</p>
+<div class="features">
+  <div class="feature">
+    <div class="icon-box">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></svg>
+    </div>
+    <h4>Real-time protection</h4>
+    <p>Inspects every script before it reaches users, with zero latency.</p>
+  </div>
+  <div class="feature">
+    <div class="icon-box">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
+    </div>
+    <h4>Complete visibility</h4>
+    <p>Analyzes exactly what each visitor's browser executes — no estimation, no sampling.</p>
+  </div>
+</div>
+</body></html>

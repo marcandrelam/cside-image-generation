@@ -1,0 +1,3410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Browser-Layer Security: See What's Running, Not Just Who | c/side</title>
+<meta name="description" content="c/side gives you full visibility into what is executing inside your visitors' browsers: scripts, AI agents, bots, and fraud signals. PCI compliance, ATO, chargeback evidence, and more. Start free.">
+<meta name="keywords" content="browser-layer security, client-side security, bot detection, browser fingerprinting, PCI DSS 4.0.1, AI agent detection, account takeover prevention, third-party script monitoring, chargeback evidence, device intelligence, fraud prevention">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://cside.com/">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://cside.com/">
+<meta property="og:title" content="Browser-Layer Security: See What's Running, Not Just Who | c/side">
+<meta property="og:description" content="c/side gives you full visibility into what is executing inside your visitors' browsers: scripts, AI agents, bots, and fraud signals. PCI compliance, ATO, and more. Start free.">
+<meta property="og:image" content="https://cside.com/og-image.png">
+<meta property="og:locale" content="en_US">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@cside_sec">
+<meta name="twitter:title" content="See What's Running in Your Visitors' Browsers | c/side">
+<meta name="twitter:description" content="Scripts, AI agents, bots, fraud signals, PCI compliance. All visible from a single browser-layer deployment. No added latency. Start free.">
+<meta name="twitter:image" content="https://cside.com/twitter-card.png">
+<meta name="author" content="c/side">
+<meta name="theme-color" content="#0057FF">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"What is browser-layer security and why does my WAF not cover it?","acceptedAnswer":{"@type":"Answer","text":"Browser-layer security monitors what executes inside your visitors' browsers after a page loads: third-party scripts, AI agents, bots, outbound data requests, and session behaviour. A WAF inspects traffic at the server boundary and stops there. It cannot see JavaScript running client-side, data leaving the browser via third-party script calls, or AI agents operating inside a real browser session. Those events happen after the server has delivered a clean page. c/side covers this gap with 100% session visibility and zero added latency, deployed via a single script tag."}},{"@type":"Question","name":"What are PCI DSS 4.0.1 requirements 6.4.3 and 11.6.1, and how does c/side satisfy them?","acceptedAnswer":{"@type":"Answer","text":"PCI DSS 4.0.1 requirement 6.4.3 mandates that organizations maintain a complete, authorized inventory of all scripts on their payment pages and document each script's purpose and integrity. Requirement 11.6.1 mandates continuous monitoring of payment page HTTP headers and script content for unauthorized changes. Both became mandatory on March 31, 2025. c/side satisfies both automatically: it inventories every script in real visitor sessions, generates AI-written justifications per script, monitors headers in real time, and produces audit-ready reports accepted by QSAs. VikingCloud has validated c/side for these requirements."}},{"@type":"Question","name":"How does c/side detect AI agents and bots that look like real visitors?","acceptedAnswer":{"@type":"Answer","text":"AI agent detection requires browser-layer behavioural analysis. AI agents operate inside real browser environments, rotate residential IPs, solve CAPTCHAs, and generate session patterns that defeat IP-based and signature-based detection. c/side identifies them by what executes inside the session: atypical device fingerprints, scripted typing cadence with zero variance, absence of natural mouse movement, autofill injection into payment fields, and behavioural signals inconsistent with human navigation. Detection happens before the server registers a login or transaction event. c/side achieves 99.7% device fingerprint accuracy across sessions with no SDK changes required."}},{"@type":"Question","name":"What is a Magecart attack, and how does c/side stop web skimming?","acceptedAnswer":{"@type":"Answer","text":"A Magecart attack is a web skimming attack in which malicious JavaScript is injected into a legitimate third-party script to steal payment card data and PII directly from the browser. The attack runs entirely client-side, after the server delivers a clean page. WAFs, SASTs, and pen tests see none of it. c/side monitors every third-party script payload in real visitor sessions, not simulated crawls. When a script changes, c/side detects it in under 60 seconds on average, alerts the team, and logs the full payload for forensic investigation and PCI audit evidence."}},{"@type":"Question","name":"How does c/side help win chargeback disputes?","acceptedAnswer":{"@type":"Answer","text":"Winning a card dispute requires session-level evidence captured at transaction time, not reconstructed after a chargeback is filed. Visa and Mastercard dispute processes increasingly require device fingerprints, browser session timelines, script activity logs, and behavioural signals as proof. c/side captures full session context automatically for every transaction. When a dispute is filed, a pre-built evidence package is ready to export in 2 seconds. Merchants using c/side see an average 40% increase in dispute win rates. c/side integrates directly with Chargebacks911 for end-to-end dispute management."}}]}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #ffffff;
+  --bg2: #f8fafc;
+  --bg3: #f1f5f9;
+  --surface: #ffffff;
+  --border: #e2e8f0;
+  --border2: #cbd5e1;
+  --ink: #0f172a;
+  --ink2: #334155;
+  --ink3: #64748b;
+  --ink4: #94a3b8;
+  --amber: #1e40af;
+  --amber-bg: #eff6ff;
+  --amber-border: #bfdbfe;
+  --red: #dc2626;
+  --red-bg: #fef2f2;
+  --green: #16a34a;
+  --green-bg: #f0fdf4;
+  --mono: 'JetBrains Mono', monospace;
+  --serif: 'Inter', sans-serif;
+  --sans: 'Inter', sans-serif;
+  --radius: 8px;
+  --radius-sm: 5px;
+  --radius-pill: 999px;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.07), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.04);
+  --shadow-lg: 0 10px 32px rgba(0,0,0,0.08), 0 4px 8px rgba(0,0,0,0.04);
+}
+
+html { scroll-behavior: smooth; background: #ffffff; }
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: inherit; text-decoration: none; }
+
+/* ─── NAV ─── */
+nav {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(255,255,255,0.97);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 40px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.nav-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--mono);
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--ink);
+}
+
+.logo-mark {
+  width: 28px;
+  height: 28px;
+  background: var(--amber);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logo-mark svg { display: block; }
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  list-style: none;
+}
+
+.nav-links a {
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--ink3);
+  transition: color 0.15s;
+}
+.nav-links a:hover { color: var(--ink); }
+
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.btn-sm {
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 7px 16px;
+  border-radius: var(--radius-sm);
+  transition: all 0.15s;
+  cursor: pointer;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-ghost-sm {
+  background: transparent;
+  color: var(--ink2);
+  border: 1px solid var(--border2);
+}
+.btn-ghost-sm:hover { border-color: var(--ink3); color: var(--ink); }
+
+.btn-dark-sm {
+  background: var(--amber);
+  color: #fff;
+}
+.btn-dark-sm:hover { background: #1e3a8a; }
+
+/* ─── ANNOUNCEMENT ─── */
+.announcement {
+  background: var(--amber-bg);
+  border-bottom: 1px solid var(--amber-border);
+  padding: 10px 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.ann-badge {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--amber);
+  background: #dbeafe;
+  padding: 2px 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border: 1px solid var(--amber-border);
+  border-radius: var(--radius-pill);
+  white-space: nowrap;
+}
+
+.ann-text {
+  font-size: 13px;
+  color: var(--ink2);
+}
+.ann-text a { color: var(--amber); border-bottom: 1px solid var(--amber-border); padding-bottom: 1px; }
+
+/* ─── HERO ─── */
+.hero {
+  padding: 96px 40px 80px;
+  max-width: 1160px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 440px;
+  gap: 80px;
+  align-items: start;
+}
+
+.hero-left {}
+
+.hero-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--amber);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 24px;
+  border: 1px solid var(--amber-border);
+  padding: 4px 12px;
+  background: var(--amber-bg);
+  border-radius: var(--radius-pill);
+}
+
+.kicker-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--amber);
+  box-shadow: 0 0 5px rgba(30,64,175,0.4);
+}
+
+.hero-h1 {
+  font-family: var(--sans);
+  font-size: clamp(42px, 5.2vw, 72px);
+  font-weight: 700;
+  line-height: 1.06;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  margin-bottom: 26px;
+}
+
+.hero-h1 em {
+  font-style: normal;
+  color: var(--amber);
+}
+
+.hero-sub {
+  font-size: 17px;
+  font-weight: 400;
+  color: var(--ink3);
+  line-height: 1.65;
+  max-width: 520px;
+  margin-bottom: 16px;
+}
+
+.hero-trust {
+  font-size: 13px;
+  color: var(--ink4);
+  font-weight: 400;
+  line-height: 1.5;
+  margin-bottom: 32px;
+  max-width: 520px;
+  font-style: italic;
+}
+
+.hero-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 48px;
+}
+
+.btn-primary {
+  font-family: var(--sans);
+  font-size: 14px;
+  font-weight: 600;
+  padding: 11px 24px;
+  background: var(--amber);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.15s;
+  box-shadow: 0 1px 3px rgba(30,64,175,0.25);
+}
+.btn-primary:hover { background: #1e3a8a; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(30,64,175,0.3); }
+
+.btn-secondary {
+  font-family: var(--sans);
+  font-size: 14px;
+  font-weight: 500;
+  padding: 11px 24px;
+  background: transparent;
+  color: var(--ink2);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.15s;
+}
+.btn-secondary:hover { border-color: var(--amber); color: var(--amber); }
+
+.hero-proof {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.proof-divider {
+  width: 1px;
+  height: 20px;
+  background: var(--border2);
+}
+
+.proof-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink3);
+}
+
+.proof-icon {
+  width: 18px;
+  height: 18px;
+  background: var(--amber-bg);
+  border: 1px solid var(--amber-border);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  flex-shrink: 0;
+  color: var(--amber);
+}
+
+.hero-anim-wrap {
+  width: 100%;
+  max-width: 520px;
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--border);
+  background: #0f172a;
+}
+
+#heroCanvas {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* ─── HERO RIGHT (old ICP styles kept for other uses) ─── */
+.hero-right {
+  padding-top: 8px;
+}
+
+.icp-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow-lg);
+}
+
+.icp-card-header {
+  background: var(--amber);
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.icp-title {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
+  color: rgba(255,255,255,0.85);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.icp-status {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: rgba(255,255,255,0.6);
+}
+
+.status-dot-live {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: #4ade80;
+  box-shadow: 0 0 6px rgba(74,222,128,0.8);
+  animation: pulse-green 2s ease infinite;
+}
+
+@keyframes pulse-green {
+  0%,100% { box-shadow: 0 0 6px rgba(74,222,128,0.6); }
+  50% { box-shadow: 0 0 12px rgba(74,222,128,1); }
+}
+
+.icp-body {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.icp-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.icp-row-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--ink4);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.icp-row-val {
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--ink);
+}
+
+.icp-row-val.threat {
+  color: var(--red);
+  font-family: var(--mono);
+  font-size: 12px;
+  background: var(--red-bg);
+  padding: 3px 10px;
+  display: inline-block;
+  border-radius: var(--radius-pill);
+}
+
+.icp-row-val.ok {
+  color: var(--green);
+  font-family: var(--mono);
+  font-size: 12px;
+  background: var(--green-bg);
+  padding: 3px 10px;
+  display: inline-block;
+  border-radius: var(--radius-pill);
+}
+
+.icp-divider { height: 1px; background: var(--border); }
+
+.icp-script-list {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.icp-script {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 12px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.script-name {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink2);
+}
+
+.script-badge {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 500;
+  padding: 2px 9px;
+  letter-spacing: 0.03em;
+  border-radius: var(--radius-pill);
+}
+
+.badge-ok { background: var(--green-bg); color: var(--green); border: 1px solid rgba(22,163,74,0.2); }
+.badge-warn { background: #fff7ed; color: #c2410c; border: 1px solid #fed7aa; }
+.badge-threat { background: var(--red-bg); color: var(--red); border: 1px solid rgba(220,38,38,0.2); }
+.badge-new { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+
+.icp-footer {
+  border-top: 1px solid var(--border);
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--bg2);
+}
+
+.icp-footer-text {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--ink4);
+}
+
+.icp-footer-link {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--amber);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* ─── PRESS BAR ─── */
+.press-bar {
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  background: var(--bg2);
+  padding: 18px 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 40px;
+}
+
+.press-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--ink4);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.press-logos {
+  display: flex;
+  align-items: center;
+  gap: 36px;
+}
+
+.press-logo-name {
+  font-family: var(--sans);
+  font-size: 15px;
+  font-weight: 500;
+  font-style: normal;
+  color: var(--ink3);
+  transition: color 0.15s;
+}
+.press-logo-name:hover { color: var(--ink2); }
+
+/* ─── PROBLEM SECTION ─── */
+.problem {
+  padding: 100px 40px;
+  max-width: 1160px;
+  margin: 0 auto;
+}
+
+.section-eyebrow {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--amber);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.eyebrow-line {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  background: var(--amber);
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.problem-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 64px;
+  align-items: start;
+  margin-top: 16px;
+}
+
+.problem-left {
+  position: sticky;
+  top: 80px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.problem-anim-wrap {
+  width: 100%;
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-md);
+  background: #0f172a;
+}
+
+#problemCanvas {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.problem-h2 {
+  font-family: var(--sans);
+  font-size: clamp(32px, 3.5vw, 50px);
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--ink);
+  letter-spacing: -0.02em;
+}
+
+.problem-h2 em { font-style: normal; color: var(--amber); }
+
+.problem-right {}
+
+.problem-body {
+  font-size: 15.5px;
+  font-weight: 300;
+  color: var(--ink2);
+  line-height: 1.7;
+  margin-bottom: 28px;
+}
+
+.problem-h3 {
+  font-family: var(--sans);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 6px;
+  margin-top: 20px;
+}
+
+/* Problem cards — icon card style matching screenshot */
+.problem-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 24px 0 28px;
+}
+
+.problem-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 18px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+
+.problem-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+
+.problem-card-icon {
+  width: 44px;
+  height: 44px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.problem-card-body {
+  flex: 1;
+}
+
+.problem-card-title {
+  font-family: var(--sans);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 6px;
+  letter-spacing: -0.01em;
+}
+
+.problem-card-text {
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--ink3);
+  line-height: 1.6;
+}
+
+.problem-callout {
+  border-left: 3px solid var(--amber);
+  padding: 16px 20px;
+  background: var(--amber-bg);
+  font-size: 14px;
+  color: var(--ink2);
+  line-height: 1.6;
+  font-style: normal;
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
+
+.problem-callout strong {
+  color: var(--ink);
+  font-style: normal;
+  font-weight: 600;
+}
+
+/* ─── CONTRAST BLOCK ─── */
+.contrast {
+  background: var(--bg2);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: 64px 40px;
+}
+
+.contrast-inner {
+  max-width: 1160px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.contrast-col {
+  padding: 40px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+}
+
+.contrast-col.dim { background: var(--bg2); opacity: 0.8; }
+
+.contrast-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 20px;
+  padding: 3px 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: var(--radius-pill);
+}
+
+.label-server { background: var(--bg3); color: var(--ink3); border: 1px solid var(--border2); }
+.label-browser { background: var(--amber-bg); color: var(--amber); border: 1px solid var(--amber-border); }
+
+.contrast-h { font-family: var(--sans); font-size: 22px; font-weight: 700; color: var(--ink); margin-bottom: 10px; letter-spacing: -0.01em; }
+
+.contrast-body { font-size: 14px; font-weight: 400; color: var(--ink3); line-height: 1.65; margin-bottom: 20px; }
+
+.contrast-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.contrast-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 13.5px;
+  color: var(--ink2);
+  font-weight: 400;
+}
+
+.contrast-list li .icon-check { color: var(--green); font-size: 12px; margin-top: 2px; flex-shrink: 0; }
+.contrast-list li .icon-x { color: var(--red); font-size: 12px; margin-top: 2px; flex-shrink: 0; }
+
+/* ─── USE CASE TABS ─── */
+.use-cases {
+  padding: 100px 40px;
+  max-width: 1160px;
+  margin: 0 auto;
+}
+
+.uc-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 48px;
+  gap: 40px;
+}
+
+.uc-h2 {
+  font-family: var(--sans);
+  font-size: clamp(30px, 3.2vw, 46px);
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--ink);
+  letter-spacing: -0.02em;
+  max-width: 500px;
+}
+
+.uc-h2 em { font-style: normal; color: var(--amber); }
+
+.uc-sub {
+  font-size: 14px;
+  font-weight: 300;
+  color: var(--ink3);
+  max-width: 280px;
+  line-height: 1.6;
+  text-align: right;
+}
+
+.contrast-compare-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--amber);
+  border-bottom: 1px solid var(--amber-border);
+  padding-bottom: 1px;
+  margin-top: 20px;
+  transition: gap 0.15s;
+}
+.contrast-compare-link:hover { gap: 8px; }
+
+.uc-tabs {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  border: 1px solid var(--border);
+  border-radius: var(--radius) var(--radius) 0 0;
+  margin-bottom: 0;
+  background: var(--bg2);
+  overflow: hidden;
+}
+
+.uc-tab {
+  padding: 16px 14px;
+  border-right: 1px solid var(--border);
+  cursor: pointer;
+  transition: all 0.15s;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: transparent;
+  border-top: 3px solid transparent;
+}
+
+.uc-tab:last-child { border-right: none; }
+.uc-tab:hover { background: var(--bg3); }
+
+.uc-tab.active {
+  background: var(--surface);
+  border-top-color: var(--amber);
+}
+
+.uc-tab-icon { font-size: 18px; margin-bottom: 4px; }
+
+.uc-tab-name {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ink3);
+  line-height: 1.3;
+}
+
+.uc-tab.active .uc-tab-name { color: var(--ink); }
+
+.uc-tab-desc {
+  font-size: 11px;
+  color: var(--ink4);
+  font-weight: 400;
+  line-height: 1.4;
+  display: none;
+}
+
+.uc-tab.active .uc-tab-desc { display: block; color: var(--amber); }
+
+.uc-panels {
+  border: 1px solid var(--border);
+  border-top: none;
+  border-radius: 0 0 var(--radius) var(--radius);
+  background: var(--surface);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+.uc-panel {
+  display: none;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+}
+
+.uc-panel.active { display: grid; }
+
+.uc-panel-left {
+  padding: 48px;
+  border-right: 1px solid var(--border);
+}
+
+.uc-panel-kicker {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--amber);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.uc-panel-kicker::before {
+  content: '';
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  background: var(--amber);
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.uc-panel-h {
+  font-family: var(--sans);
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--ink);
+  line-height: 1.2;
+  margin-bottom: 14px;
+  letter-spacing: -0.02em;
+}
+
+.uc-panel-body {
+  font-size: 14.5px;
+  font-weight: 400;
+  color: var(--ink3);
+  line-height: 1.7;
+  margin-bottom: 28px;
+}
+
+.uc-features {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 32px;
+}
+
+.uc-feature {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 13.5px;
+  color: var(--ink2);
+  font-weight: 400;
+}
+
+.feature-check {
+  width: 17px;
+  height: 17px;
+  background: var(--amber-bg);
+  border: 1px solid var(--amber-border);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+  font-size: 9px;
+  color: var(--amber);
+}
+
+.uc-cta-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--amber);
+  border-bottom: 1px solid var(--amber-border);
+  padding-bottom: 2px;
+  transition: gap 0.15s;
+}
+.uc-cta-link:hover { gap: 10px; }
+
+.uc-panel-right {
+  padding: 48px;
+  background: var(--bg2);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.proof-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow-sm);
+}
+
+.proof-quote {
+  font-family: var(--sans);
+  font-size: 15px;
+  font-style: italic;
+  font-weight: 400;
+  color: var(--ink);
+  line-height: 1.6;
+  margin-bottom: 16px;
+}
+
+.proof-attribution {
+  font-size: 12px;
+  color: var(--ink3);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.proof-avatar {
+  width: 28px;
+  height: 28px;
+  background: var(--amber);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.stat-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.stat-block {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  box-shadow: var(--shadow-sm);
+}
+
+.stat-block-num {
+  font-family: var(--sans);
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--ink);
+  line-height: 1;
+  margin-bottom: 6px;
+}
+
+.stat-block-num em { color: var(--amber); font-style: normal; }
+
+.stat-block-label {
+  font-size: 12px;
+  color: var(--ink3);
+  font-weight: 400;
+  line-height: 1.4;
+}
+
+/* ─── CERTS ─── */
+.certs-bar {
+  background: var(--bg2);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: 28px 40px;
+}
+
+.certs-inner {
+  max-width: 1160px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 48px;
+}
+
+.certs-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--ink4);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.cert-list {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  flex-wrap: wrap;
+}
+
+.cert-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink2);
+}
+
+.cert-badge-box {
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--border2);
+  background: var(--surface);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  box-shadow: var(--shadow-sm);
+}
+
+.cert-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.cert-name { font-weight: 600; font-size: 13px; color: var(--ink); }
+.cert-sub { font-size: 11px; color: var(--ink4); font-weight: 400; }
+
+.certs-trust-link {
+  margin-left: auto;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--amber);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  border-bottom: 1px solid var(--amber-border);
+  padding-bottom: 1px;
+  transition: color 0.15s;
+}
+.certs-trust-link:hover { color: #1e3a8a; border-color: #1e3a8a; }
+
+/* ─── HOW IT WORKS ─── */
+.how {
+  padding: 100px 40px;
+  background: var(--bg2);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.how-inner {
+  max-width: 1160px;
+  margin: 0 auto;
+}
+
+.how-eyebrow {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--amber);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.how-eyebrow span {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  background: var(--amber);
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.how-h2 {
+  font-family: var(--sans);
+  font-size: clamp(30px, 3.2vw, 46px);
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  margin-bottom: 60px;
+  max-width: 600px;
+}
+
+.how-h2 em { font-style: normal; color: var(--amber); }
+
+.how-steps {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  background: transparent;
+  border: none;
+}
+
+.how-step {
+  background: var(--surface);
+  padding: 32px 28px;
+  position: relative;
+  transition: all 0.2s;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+}
+
+.how-step:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+
+.step-num {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--amber);
+  letter-spacing: 0.05em;
+  margin-bottom: 20px;
+  font-weight: 600;
+}
+
+.step-icon {
+  font-size: 22px;
+  margin-bottom: 16px;
+  display: block;
+}
+
+.step-title {
+  font-family: var(--sans);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 10px;
+  letter-spacing: -0.01em;
+}
+
+.step-body {
+  font-size: 13.5px;
+  font-weight: 400;
+  color: var(--ink3);
+  line-height: 1.6;
+}
+
+/* ─── SUPPORT ─── */
+.support {
+  padding: 100px 40px;
+  max-width: 1160px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 100px;
+  align-items: center;
+}
+
+.support-h2 {
+  font-family: var(--sans);
+  font-size: clamp(28px, 3vw, 42px);
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  margin-bottom: 16px;
+}
+
+.support-h2 em { font-style: normal; color: var(--amber); }
+
+.support-body {
+  font-size: 15px;
+  font-weight: 300;
+  color: var(--ink2);
+  line-height: 1.7;
+  margin-bottom: 28px;
+}
+
+.support-bullets {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 36px;
+}
+
+.support-bullets li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 14px;
+  color: var(--ink2);
+  font-weight: 400;
+}
+
+.support-bullets li::before {
+  content: '→';
+  color: var(--amber);
+  font-family: var(--mono);
+  font-size: 12px;
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.support-visual {}
+
+.slack-card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+}
+
+.slack-topbar {
+  background: #1a1a1a;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.slack-dots { display: flex; gap: 5px; }
+.slack-dot { width: 10px; height: 10px; border-radius: 50%; }
+.sd-r { background: #d94f3d; }
+.sd-y { background: #f59e0b; }
+.sd-g { background: #3db87a; }
+
+.slack-channel-name {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: rgba(255,255,255,0.5);
+  margin-left: 6px;
+}
+
+.slack-messages {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.slack-message {
+  display: flex;
+  gap: 10px;
+  padding: 10px 8px;
+  border-bottom: 1px solid var(--bg2);
+}
+
+.slack-message:last-child { border-bottom: none; }
+
+.slack-av {
+  width: 30px;
+  height: 30px;
+  border-radius: 5px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  margin-top: 1px;
+}
+
+.av-c { background: #111827; color: var(--amber); }
+.av-u { background: rgba(37,99,235,0.1); color: var(--amber); font-size: 11px; }
+
+.slack-msg-inner {}
+
+.slack-msg-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 3px;
+}
+
+.slack-msg-name { font-size: 13px; font-weight: 600; color: var(--ink); }
+.slack-msg-time { font-size: 11px; color: var(--ink4); }
+
+.slack-msg-text {
+  font-size: 13.5px;
+  color: var(--ink2);
+  font-weight: 300;
+  line-height: 1.5;
+}
+
+.slack-msg-text code {
+  font-family: var(--mono);
+  font-size: 11px;
+  background: var(--bg3);
+  color: var(--amber);
+  padding: 1px 5px;
+  border: 1px solid var(--border);
+}
+
+.online-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: var(--green);
+  font-weight: 400;
+  margin-top: 2px;
+}
+
+.live-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--green);
+  animation: pulse-green 2s ease infinite;
+}
+
+/* ─── PRICING TEASE ─── */
+.pricing-tease {
+  background: var(--bg2);
+  border-top: 1px solid var(--border);
+  padding: 80px 40px;
+}
+
+.pt-inner {
+  max-width: 1160px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 80px;
+  align-items: start;
+}
+
+.pt-left {}
+
+.pt-h2 {
+  font-family: var(--sans);
+  font-size: clamp(28px, 3vw, 40px);
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  margin-bottom: 12px;
+}
+
+.pt-body {
+  font-size: 14px;
+  font-weight: 300;
+  color: var(--ink3);
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+
+.pt-right {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+}
+
+.plan-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 28px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow 0.2s;
+}
+
+.plan-card:hover { box-shadow: var(--shadow-md); }
+
+.plan-card.featured {
+  border-color: var(--amber);
+  position: relative;
+}
+
+.plan-featured-tag {
+  position: absolute;
+  top: -1px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--mono);
+  font-size: 9px;
+  background: var(--amber);
+  color: #fff;
+  padding: 3px 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+}
+
+.plan-name {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink3);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.plan-price {
+  font-family: var(--sans);
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--ink);
+  line-height: 1;
+}
+
+.plan-price span { font-size: 13px; color: var(--ink3); font-style: normal; font-weight: 400; }
+
+.plan-desc {
+  font-size: 12.5px;
+  color: var(--ink3);
+  font-weight: 300;
+  line-height: 1.5;
+}
+
+.plan-cta {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: auto;
+  padding-top: 4px;
+  border-top: 1px solid var(--border);
+}
+
+.plan-cta.amber { color: var(--amber); }
+
+/* ─── FAQ SECTION ─── */
+.faq {
+  padding: 100px 40px;
+  background: var(--bg2);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.faq-inner {
+  max-width: 860px;
+  margin: 0 auto;
+}
+
+.faq-header {
+  text-align: center;
+  margin-bottom: 56px;
+}
+
+.faq-h2 {
+  font-family: var(--sans);
+  font-size: clamp(28px, 3vw, 42px);
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  margin-bottom: 0;
+}
+
+.faq-h2 em { font-style: normal; color: var(--amber); }
+
+.faq-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+.faq-item {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.faq-item:last-child { border-bottom: none; }
+
+.faq-question {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 22px 28px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s;
+}
+
+.faq-question:hover { background: var(--bg2); }
+
+.faq-item.open .faq-question { background: var(--bg2); }
+
+.faq-question-text {
+  font-family: var(--sans);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink);
+  line-height: 1.4;
+  letter-spacing: -0.01em;
+}
+
+.faq-item.open .faq-question-text { color: var(--amber); }
+
+.faq-chevron {
+  width: 20px;
+  height: 20px;
+  border: 1px solid var(--border2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: transform 0.25s, border-color 0.15s, background 0.15s;
+  font-size: 10px;
+  color: var(--ink3);
+}
+
+.faq-item.open .faq-chevron {
+  transform: rotate(180deg);
+  border-color: var(--amber);
+  background: var(--amber-bg);
+  color: var(--amber);
+}
+
+.faq-answer {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.faq-item.open .faq-answer { max-height: 400px; }
+
+.faq-answer-inner {
+  padding: 0 28px 24px;
+  font-size: 14.5px;
+  font-weight: 400;
+  color: var(--ink2);
+  line-height: 1.7;
+  border-top: 1px solid var(--border);
+  padding-top: 20px;
+}
+
+/* ─── FINAL CTA ─── */
+.final-cta {
+  padding: 120px 40px;
+  border-top: 1px solid var(--border);
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(160deg, #eff6ff 0%, #ffffff 50%, #f0fdf4 100%);
+}
+
+.cta-grid-bg {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(var(--border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border) 1px, transparent 1px);
+  background-size: 48px 48px;
+  opacity: 0.3;
+  mask-image: radial-gradient(ellipse 70% 100% at 50% 50%, black 30%, transparent 100%);
+}
+
+.cta-inner {
+  position: relative;
+  max-width: 680px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.cta-kicker {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--amber);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+}
+.cta-kicker::before {
+  content: '';
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  background: var(--amber);
+  border-radius: 50%;
+}
+
+.cta-h2 {
+  font-family: var(--sans);
+  font-size: clamp(36px, 4.5vw, 60px);
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+  margin-bottom: 20px;
+}
+
+.cta-h2 em { font-style: normal; color: var(--amber); }
+
+.cta-sub {
+  font-size: 15.5px;
+  font-weight: 400;
+  color: var(--ink3);
+  line-height: 1.65;
+  margin-bottom: 40px;
+}
+
+.cta-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.cta-note {
+  font-size: 12px;
+  color: var(--ink4);
+  font-weight: 400;
+}
+
+/* ─── FOOTER ─── */
+footer {
+  background: var(--ink);
+  padding: 60px 40px 40px;
+}
+
+.footer-top {
+  max-width: 1160px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 80px;
+  padding-bottom: 48px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  margin-bottom: 32px;
+}
+
+.footer-logo-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.footer-logo-mark {
+  width: 24px;
+  height: 24px;
+  background: var(--amber);
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.footer-logo-name {
+  font-family: var(--mono);
+  font-size: 14px;
+  font-weight: 500;
+  color: #fff;
+}
+
+.footer-tagline {
+  font-size: 13px;
+  font-weight: 400;
+  color: rgba(255,255,255,0.35);
+  line-height: 1.6;
+  margin-bottom: 24px;
+  max-width: 200px;
+}
+
+.footer-email {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: rgba(255,255,255,0.4);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 20px;
+}
+
+.footer-socials {
+  display: flex;
+  gap: 8px;
+}
+
+.social-btn {
+  width: 28px;
+  height: 28px;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  color: rgba(255,255,255,0.35);
+  transition: all 0.15s;
+}
+.social-btn:hover { border-color: rgba(255,255,255,0.3); color: #fff; background: rgba(255,255,255,0.05); }
+
+.footer-cols {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 32px;
+}
+
+.footer-col-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: rgba(255,255,255,0.25);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+
+.footer-col-links {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.footer-col-links a {
+  font-size: 13px;
+  font-weight: 400;
+  color: rgba(255,255,255,0.45);
+  transition: color 0.15s;
+}
+.footer-col-links a:hover { color: rgba(255,255,255,0.8); }
+
+.footer-bottom {
+  max-width: 1160px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.footer-legal {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: rgba(255,255,255,0.2);
+}
+
+.footer-legal-links {
+  display: flex;
+  gap: 20px;
+}
+
+.footer-legal-links a {
+  font-size: 11px;
+  color: rgba(255,255,255,0.25);
+  font-weight: 400;
+  transition: color 0.15s;
+}
+.footer-legal-links a:hover { color: rgba(255,255,255,0.5); }
+
+.status-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: rgba(255,255,255,0.3);
+  border: 1px solid rgba(255,255,255,0.08);
+  padding: 4px 12px;
+  border-radius: var(--radius-pill);
+}
+
+/* ─── ANIMATIONS ─── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.97) translateY(10px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.hero-left > * {
+  animation: fadeUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.hero-kicker { animation-delay: 0s; }
+.hero-h1 { animation-delay: 0.08s; }
+.hero-sub { animation-delay: 0.16s; }
+.hero-actions { animation-delay: 0.22s; }
+.hero-proof { animation-delay: 0.28s; }
+.hero-right { animation: scaleIn 0.55s 0.12s cubic-bezier(0.16, 1, 0.3, 1) both; }
+/* ─── SCROLL REVEAL ─── */
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.55s cubic-bezier(0.16, 1, 0.3, 1), transform 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.reveal-delay-1 { transition-delay: 0.08s; }
+.reveal-delay-2 { transition-delay: 0.16s; }
+.reveal-delay-3 { transition-delay: 0.24s; }
+.reveal-delay-4 { transition-delay: 0.32s; }
+</style>
+</head>
+<body>
+
+<!-- ANNOUNCEMENT -->
+<div class="announcement">
+  <span class="ann-badge">Webinar</span>
+  <span class="ann-text">Reducing chargebacks with browser-layer intelligence: <a href="#">cside x Chargebacks911 →</a></span>
+</div>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="nav-logo">
+    <div class="logo-mark">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+        <rect x="1" y="1" width="5" height="5" fill="white"/>
+        <rect x="8" y="1" width="5" height="5" fill="white" opacity="0.6"/>
+        <rect x="1" y="8" width="5" height="5" fill="white" opacity="0.6"/>
+        <rect x="8" y="8" width="5" height="5" fill="white"/>
+      </svg>
+    </div>
+    c/side
+  </a>
+
+  <ul class="nav-links">
+    <li><a href="#">Solutions</a></li>
+    <li><a href="#">Use Cases</a></li>
+    <li><a href="#">Compare</a></li>
+    <li><a href="#">Blog</a></li>
+    <li><a href="#">Pricing</a></li>
+  </ul>
+
+  <div class="nav-right">
+    <a href="#" class="btn-sm btn-ghost-sm">Log in</a>
+    <a href="#" class="btn-sm btn-dark-sm">Book a demo</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-left">
+    <div class="hero-kicker">
+      <span class="kicker-dot"></span>
+      PCI DSS 4.0.1 requirements 6.4.3 &amp; 11.6.1
+    </div>
+
+    <h1 class="hero-h1">
+      Your WAF watches the server.<br>
+      <em>c/side watches the browser.</em>
+    </h1>
+
+    <p class="hero-sub">
+      Browser-layer security gives you full visibility into what executes inside your visitors' browsers. Scripts, AI agents, bots, and fraud signals. All invisible to your WAF. All visible to c/side.
+    </p>
+
+    <p class="hero-trust">
+      One script tag. 100% session coverage. Zero added latency. Used by security, fraud, compliance, and privacy teams across ecommerce, fintech, SaaS, tech, gaming, and hospitality.
+    </p>
+
+    <div class="hero-actions">
+      <a href="#" class="btn-primary">Start free →</a>
+      <a href="#" class="btn-secondary">Book a demo</a>
+    </div>
+
+    <div class="hero-proof">
+      <div class="proof-item">
+        <div class="proof-icon">✓</div>
+        VikingCloud-approved
+      </div>
+      <div class="proof-divider"></div>
+      <div class="proof-item">
+        <div class="proof-icon">🔒</div>
+        SOC 2 Type II
+      </div>
+      <div class="proof-divider"></div>
+      <div class="proof-item">
+        <div class="proof-icon">📋</div>
+        PCI DSS certified
+      </div>
+      <div class="proof-divider"></div>
+      <div class="proof-item">
+        <div class="proof-icon">⚡</div>
+        Zero latency
+      </div>
+    </div>
+  </div>
+
+  <div class="hero-right">
+    <div class="hero-anim-wrap">
+      <canvas id="heroCanvas" width="520" height="420"></canvas>
+    </div>
+  </div>
+</section>
+
+<!-- PRESS BAR -->
+<div class="press-bar">
+  <span class="press-label">Featured in</span>
+  <div class="press-logos">
+    <span class="press-logo-name">Hacker News</span>
+    <span class="press-logo-name">Forbes</span>
+    <span class="press-logo-name">TechCrunch</span>
+    <span class="press-logo-name">Wired</span>
+  </div>
+</div>
+
+<!-- PROBLEM SECTION -->
+<section class="problem">
+  <div class="section-eyebrow reveal"><span class="eyebrow-line"></span> The Problem</div>
+  <div class="problem-layout">
+    <div class="problem-left">
+      <h2 class="problem-h2 reveal reveal-delay-1">
+        You've secured your servers.<br>
+        <em>The browser is still a blind spot.</em>
+      </h2>
+      <div class="problem-anim-wrap reveal reveal-delay-2">
+        <canvas id="problemCanvas" width="440" height="320"></canvas>
+      </div>
+    </div>
+    <div class="problem-right">
+      <p class="problem-body">
+        Scripts, AI agents, and fraud all exploit the same gap: the browser layer your server-side tools cannot see. Three reasons it matters:
+      </p>
+      <div class="problem-cards">
+        <div class="problem-card reveal reveal-delay-1">
+          <div class="problem-card-icon">🔍</div>
+          <div class="problem-card-body">
+            <h3 class="problem-card-title">Third-party scripts change without warning</h3>
+            <p class="problem-card-text">Your analytics tag, chat widget, or payment library can be compromised by an attacker. It happens silently. Your server logs show nothing. c/side catches it in real time.</p>
+          </div>
+        </div>
+        <div class="problem-card reveal reveal-delay-2">
+          <div class="problem-card-icon">🤖</div>
+          <div class="problem-card-body">
+            <h3 class="problem-card-title">AI agents abuse your workflows like real visitors</h3>
+            <p class="problem-card-text">AI agents now navigate login, checkout, and account flows with human-like behaviour. They don't trigger server-side rules. Only browser-layer visibility catches them.</p>
+          </div>
+        </div>
+        <div class="problem-card reveal reveal-delay-3">
+          <div class="problem-card-icon">💳</div>
+          <div class="problem-card-body">
+            <h3 class="problem-card-title">Fraud happens in the browser, not on the server</h3>
+            <p class="problem-card-text">Friendly fraud, ATO, account sharing. The evidence that wins or loses disputes is browser-level. Device fingerprints, session timelines, behavioural signals. All invisible without c/side.</p>
+          </div>
+        </div>
+      </div>
+      <div class="problem-callout">
+        <strong>Script skimming, data exfiltration, fraud, and AI agent abuse</strong> all happen in the browser, after your server has delivered a clean page. It is the attack surface most security teams cannot see.
+      </div>
+    </div>
+  </div>
+</section>
+<div class="contrast">
+  <div class="contrast-inner">
+    <div class="contrast-col dim reveal">
+      <span class="contrast-label label-server">What you have</span>
+      <h3 class="contrast-h">Server-side and perimeter security is not enough</h3>
+      <p class="contrast-body">Traditional AppSec stops at the server. Visitor identification tools like Fingerprint.com see who visits, not what executes in their browser. Once your page loads, the browser becomes a blind spot across security, fraud, and compliance.</p>
+      <ul class="contrast-list">
+        <li><span class="icon-x">✗</span> No visibility into client-side runtime behaviour</li>
+        <li><span class="icon-x">✗</span> No inventory of scripts executing in the browser</li>
+        <li><span class="icon-x">✗</span> Cannot detect data exfiltration or formjacking</li>
+        <li><span class="icon-x">✗</span> Cannot detect AI agents or headless browsers in sessions</li>
+        <li><span class="icon-x">✗</span> No session-level ATO signals before login completes</li>
+        <li><span class="icon-x">✗</span> No session evidence for chargeback disputes</li>
+        <li><span class="icon-x">✗</span> No monitoring of third-party script behaviour over time</li>
+        <li><span class="icon-x">✗</span> No automated way to prove PCI DSS 4.0.1 compliance</li>
+      </ul>
+    </div>
+    <div class="contrast-col reveal reveal-delay-2">
+      <span class="contrast-label label-browser">What you unlock with c/side</span>
+      <h3 class="contrast-h">Full browser-layer visibility across security, fraud, and compliance</h3>
+      <p class="contrast-body">c/side gives security, fraud, compliance, and privacy teams a single view into what is executing inside every browser session: scripts, agents, bots, signals, and evidence.</p>
+      <ul class="contrast-list">
+        <li><span class="icon-check">✓</span> Full visibility into client-side runtime behaviour</li>
+        <li><span class="icon-check">✓</span> Complete script inventory and payload history per page load</li>
+        <li><span class="icon-check">✓</span> Detects formjacking, Magecart, and data exfiltration</li>
+        <li><span class="icon-check">✓</span> Identifies AI agents and bots in real browser sessions</li>
+        <li><span class="icon-check">✓</span> Browser-layer ATO and credential stuffing detection</li>
+        <li><span class="icon-check">✓</span> Session-level chargeback evidence captured at transaction time</li>
+        <li><span class="icon-check">✓</span> Continuous third-party script monitoring with change alerts</li>
+        <li><span class="icon-check">✓</span> Automated PCI DSS 4.0.1 reporting (6.4.3 and 11.6.1)</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- USE CASES -->
+<section class="use-cases">
+  <div class="section-eyebrow reveal"><span class="eyebrow-line"></span> Solutions</div>
+  <div class="uc-header reveal reveal-delay-1">
+    <h2 class="uc-h2">One platform. <em>Full browser visibility across every use case.</em></h2>
+    <p class="uc-sub">Seven browser-layer use cases. One script tag. 100% session coverage and zero added latency.</p>
+  </div>
+
+  <div class="uc-tabs reveal reveal-delay-2">
+    <div class="uc-tab active" onclick="switchTab(0)">
+      <div class="uc-tab-icon">📋</div>
+      <div class="uc-tab-name">PCI Compliance</div>
+      <div class="uc-tab-desc">Automate 6.4.3 and 11.6.1</div>
+    </div>
+    <div class="uc-tab" onclick="switchTab(1)">
+      <div class="uc-tab-icon">👁</div>
+      <div class="uc-tab-name">Privacy Watch</div>
+      <div class="uc-tab-desc">Outbound data monitoring</div>
+    </div>
+    <div class="uc-tab" onclick="switchTab(2)">
+      <div class="uc-tab-icon">🔍</div>
+      <div class="uc-tab-name">Script Security</div>
+      <div class="uc-tab-desc">Stop skimming and injections</div>
+    </div>
+    <div class="uc-tab" onclick="switchTab(3)">
+      <div class="uc-tab-icon">🤖</div>
+      <div class="uc-tab-name">AI Agent Detection</div>
+      <div class="uc-tab-desc">Identify automated threats</div>
+    </div>
+    <div class="uc-tab" onclick="switchTab(4)">
+      <div class="uc-tab-icon">🔐</div>
+      <div class="uc-tab-name">Account Takeover</div>
+      <div class="uc-tab-desc">Stop credential abuse</div>
+    </div>
+    <div class="uc-tab" onclick="switchTab(5)">
+      <div class="uc-tab-icon">💳</div>
+      <div class="uc-tab-name">Chargeback Evidence</div>
+      <div class="uc-tab-desc">Win disputes automatically</div>
+    </div>
+    <div class="uc-tab" onclick="switchTab(6)">
+      <div class="uc-tab-icon">🌐</div>
+      <div class="uc-tab-name">Geo-Fencing</div>
+      <div class="uc-tab-desc">Enforce access by geography</div>
+    </div>
+  </div>
+
+  <div class="uc-panels">
+
+    <!-- TAB 0: PCI -->
+    <div class="uc-panel active" id="panel-0">
+      <div class="uc-panel-left">
+        <div class="uc-panel-kicker">For Security and Compliance Teams</div>
+        <h3 class="uc-panel-h">PCI DSS 4.0.1 automated. Audits handled.</h3>
+        <p class="uc-panel-body">PCI DSS 4.0.1 requirements 6.4.3 and 11.6.1 require a complete, continuously updated script inventory on every payment page, plus tamper detection on HTTP headers and script content. Both requirements became mandatory on March 31, 2025. Server-side tools cannot satisfy either. c/side automates both in real visitor sessions, with audit-ready reports your QSA accepts on first submission.</p>
+        <ul class="uc-features">
+          <li><span class="feature-check">✓</span> Automated script inventory for every payment page</li>
+          <li><span class="feature-check">✓</span> Continuous monitoring for unauthorized changes</li>
+          <li><span class="feature-check">✓</span> Audit-ready reports generated on demand</li>
+          <li><span class="feature-check">✓</span> VikingCloud-approved, accepted by leading QSAs</li>
+          <li><span class="feature-check">✓</span> Real-time alerts on script changes</li>
+        </ul>
+        <a href="#" class="uc-cta-link">See PCI Shield in detail →</a>
+      </div>
+      <div class="uc-panel-right">
+        <div class="proof-card">
+          <p class="proof-quote">"We went from a 3-week manual audit process to a one-click report. Our QSA was satisfied on the first submission."</p>
+          <div class="proof-attribution">
+            <div class="proof-avatar">IS</div>
+            Head of Information Security, global hospitality group
+          </div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-block">
+            <div class="stat-block-num"><em>100</em>%</div>
+            <div class="stat-block-label">Script payloads recorded historically</div>
+          </div>
+          <div class="stat-block">
+            <div class="stat-block-num">Zero</div>
+            <div class="stat-block-label">Added latency to page load</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 1: PRIVACY -->
+    <div class="uc-panel" id="panel-1">
+      <div class="uc-panel-left">
+        <div class="uc-panel-kicker">For Privacy and Legal Teams</div>
+        <h3 class="uc-panel-h">Know exactly what data your scripts are sending, and where it goes.</h3>
+        <p class="uc-panel-body">Under GDPR and ePrivacy, organizations are responsible for data transmitted by third-party scripts, even vendor-operated ones. When a marketing tag or analytics pixel sends personal data to an undisclosed domain, the data controller bears the liability. c/side monitors every outbound request per script in real time, so you can respond to DSARs and prove lawful processing with browser-layer evidence.</p>
+        <ul class="uc-features">
+          <li><span class="feature-check">✓</span> Real-time outbound data monitoring per script</li>
+          <li><span class="feature-check">✓</span> Consent-aligned tracker inventory</li>
+          <li><span class="feature-check">✓</span> GDPR and ePrivacy compliance evidence</li>
+          <li><span class="feature-check">✓</span> Detects unauthorized data sharing</li>
+          <li><span class="feature-check">✓</span> DSAR-ready data flow records</li>
+        </ul>
+        <a href="#" class="uc-cta-link">See Privacy Watch →</a>
+      </div>
+      <div class="uc-panel-right">
+        <div class="proof-card">
+          <p class="proof-quote">"We discovered trackers sending data to unknown domains introduced via a marketing tag update we hadn't reviewed. c/side caught it the same day."</p>
+          <div class="proof-attribution">
+            <div class="proof-avatar">DPO</div>
+            Data Protection Officer, European retailer
+          </div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-block">
+            <div class="stat-block-num"><em>∞</em></div>
+            <div class="stat-block-label">Request history retention</div>
+          </div>
+          <div class="stat-block">
+            <div class="stat-block-num">GDPR</div>
+            <div class="stat-block-label">EU data residency compliant</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: SCRIPT SECURITY -->
+    <div class="uc-panel" id="panel-2">
+      <div class="uc-panel-left">
+        <div class="uc-panel-kicker">For Security Engineering</div>
+        <h3 class="uc-panel-h">Third-party scripts change without warning. You need to know when they do.</h3>
+        <p class="uc-panel-body">A Magecart attack injects malicious JavaScript into a trusted third-party script to skim payment card data and PII directly from the browser. WAFs and server logs see nothing: the code runs after the page loads, entirely client-side. c/side detects script behaviour changes the moment they occur, in real visitor sessions, not simulated crawls.</p>
+        <ul class="uc-features">
+          <li><span class="feature-check">✓</span> Detects supply chain compromises in third-party scripts</li>
+          <li><span class="feature-check">✓</span> Catches attacks invisible to CSP and crawlers</li>
+          <li><span class="feature-check">✓</span> Blocks payment and PII data exfiltration</li>
+          <li><span class="feature-check">✓</span> Full historical payload archive for forensics</li>
+          <li><span class="feature-check">✓</span> Bypasses obfuscation and shadow DOM hiding</li>
+        </ul>
+        <a href="#" class="uc-cta-link">See Client-side Security →</a>
+      </div>
+      <div class="uc-panel-right">
+        <div class="proof-card">
+          <p class="proof-quote">"We caught a compromised analytics vendor the same day it was injected. Our WAF saw nothing. c/side flagged it within minutes."</p>
+          <div class="proof-attribution">
+            <div class="proof-avatar">SE</div>
+            Senior Security Engineer, fintech
+          </div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-block">
+            <div class="stat-block-num"><em>60</em>s</div>
+            <div class="stat-block-label">Mean time to detection (platform data, 2024 to 2025)</div>
+          </div>
+          <div class="stat-block">
+            <div class="stat-block-num"><em>100</em>%</div>
+            <div class="stat-block-label">Session coverage (no sampling)</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: AI AGENT DETECTION -->
+    <div class="uc-panel" id="panel-3">
+      <div class="uc-panel-left">
+        <div class="uc-panel-kicker">For Security and Product Teams</div>
+        <h3 class="uc-panel-h">AI agents run in real browser sessions. They look exactly like real visitors.</h3>
+        <p class="uc-panel-body">AI agent fraud uses autonomous software to complete login, checkout, and account creation in real browser environments. Unlike legacy bots, AI agents rotate residential IPs, solve CAPTCHAs, and generate session patterns that defeat signature-based detection. c/side identifies them by what they do inside the session, not how they appear from outside it.</p>
+        <ul class="uc-features">
+          <li><span class="feature-check">✓</span> Detects AI-driven browsers and headless agents</li>
+          <li><span class="feature-check">✓</span> Identifies credential abuse and automation</li>
+          <li><span class="feature-check">✓</span> Flags fraud at checkout and login</li>
+          <li><span class="feature-check">✓</span> Persistent device fingerprinting</li>
+          <li><span class="feature-check">✓</span> Real-time detection signals</li>
+        </ul>
+        <a href="#" class="uc-cta-link">See AI Agent Detection →</a>
+      </div>
+      <div class="uc-panel-right">
+        <div class="proof-card">
+          <p class="proof-quote">"c/side surfaced an AI agent running a coordinated inventory-depletion attack we never would have caught otherwise."</p>
+          <div class="proof-attribution">
+            <div class="proof-avatar">CTO</div>
+            CTO, retail brand
+          </div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-block">
+            <div class="stat-block-num"><em>99</em>.7<em>%</em></div>
+            <div class="stat-block-label">Fingerprint accuracy (platform data, 2024 to 2025)</div>
+          </div>
+          <div class="stat-block">
+            <div class="stat-block-num">Zero</div>
+            <div class="stat-block-label">SDK changes required</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 4: ACCOUNT TAKEOVER -->
+    <div class="uc-panel" id="panel-4">
+      <div class="uc-panel-left">
+        <div class="uc-panel-kicker">For Security and Fraud Teams</div>
+        <h3 class="uc-panel-h">Stop account takeover before the session completes.</h3>
+        <p class="uc-panel-body">Account takeover (ATO) exploits stolen credentials, session hijacking, or credential stuffing to gain unauthorized account access. c/side detects the browser-layer signals that precede a login attempt: atypical device fingerprints, scripted typing cadence, and residential proxy usage. Detection happens before the server registers the event.</p>
+        <ul class="uc-features">
+          <li><span class="feature-check">✓</span> Detects credential stuffing via browser signals</li>
+          <li><span class="feature-check">✓</span> Identifies session hijacking attempts</li>
+          <li><span class="feature-check">✓</span> Flags automation at login</li>
+          <li><span class="feature-check">✓</span> Persistent fingerprinting across VPNs</li>
+          <li><span class="feature-check">✓</span> Real-time fraud signals</li>
+        </ul>
+        <a href="#" class="uc-cta-link">See Account Takeover Protection →</a>
+      </div>
+      <div class="uc-panel-right">
+        <div class="proof-card">
+          <p class="proof-quote">"c/side surfaced a credential stuffing campaign running through residential proxies. Our WAF had zero visibility."</p>
+          <div class="proof-attribution">
+            <div class="proof-avatar">FD</div>
+            Head of Fraud, financial services
+          </div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-block">
+            <div class="stat-block-num"><em>99</em>.7<em>%</em></div>
+            <div class="stat-block-label">Fingerprint accuracy (platform data, 2024 to 2025)</div>
+          </div>
+          <div class="stat-block">
+            <div class="stat-block-num">Under <em>1s</em></div>
+            <div class="stat-block-label">Detection latency</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 5: CHARGEBACK EVIDENCE -->
+    <div class="uc-panel" id="panel-5">
+      <div class="uc-panel-left">
+        <div class="uc-panel-kicker">For Payments and Risk Teams</div>
+        <h3 class="uc-panel-h">Capture chargeback evidence before disputes are raised.</h3>
+        <p class="uc-panel-body">Winning a card dispute requires session-level evidence captured at transaction time: device fingerprints, browser state, script activity, and behavioural patterns. Evidence reconstructed after filing is typically insufficient. c/side captures full session context automatically for every transaction, so the evidence is already there when a chargeback is filed.</p>
+        <ul class="uc-features">
+          <li><span class="feature-check">✓</span> Session-level evidence capture at transaction time</li>
+          <li><span class="feature-check">✓</span> Device fingerprinting tied to order IDs</li>
+          <li><span class="feature-check">✓</span> VPN, proxy, and anonymiser detection</li>
+          <li><span class="feature-check">✓</span> Pre-built dispute evidence packages</li>
+          <li><span class="feature-check">✓</span> Direct integration with Chargebacks911</li>
+        </ul>
+        <a href="#" class="uc-cta-link">See Chargeback Evidence →</a>
+      </div>
+      <div class="uc-panel-right">
+        <div class="proof-card">
+          <p class="proof-quote">"The evidence packages are exactly what Visa and Mastercard want to see. Our dispute win rate jumped significantly."</p>
+          <div class="proof-attribution">
+            <div class="proof-avatar">VP</div>
+            VP Payments, ecommerce operator
+          </div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-block">
+            <div class="stat-block-num">+<em>40</em>%</div>
+            <div class="stat-block-label">Dispute win rate increase (platform data, 2024 to 2025)</div>
+          </div>
+          <div class="stat-block">
+            <div class="stat-block-num"><em>2</em>s</div>
+            <div class="stat-block-label">Evidence generation time</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 6: GEO-FENCING -->
+    <div class="uc-panel" id="panel-6">
+      <div class="uc-panel-left">
+        <div class="uc-panel-kicker">For Security, Fraud and Compliance Teams</div>
+        <h3 class="uc-panel-h">Enforce and verify access by geography, at the browser layer.</h3>
+        <p class="uc-panel-body">VPNs, proxies, and AI agents routinely bypass network-layer geo controls. c/side validates geographic signals directly inside the browser session, detecting mismatches between claimed and actual location in real time, before access is granted or a transaction completes.</p>
+        <ul class="uc-features">
+          <li><span class="feature-check">✓</span> Detects VPN, proxy, and location spoofing in real time</li>
+          <li><span class="feature-check">✓</span> Browser-level geo verification per session</li>
+          <li><span class="feature-check">✓</span> Flags access from restricted or sanctioned regions</li>
+          <li><span class="feature-check">✓</span> Identifies impossible travel patterns across sessions</li>
+          <li><span class="feature-check">✓</span> Supports compliance with regional access and data rules</li>
+        </ul>
+        <a href="#" class="uc-cta-link">See Geo-Fencing Controls →</a>
+      </div>
+      <div class="uc-panel-right">
+        <div class="proof-card">
+          <p class="proof-quote">"We discovered repeated logins claiming to be EU-based that were actually routed through offshore proxies. c/side exposed the discrepancy immediately."</p>
+          <div class="proof-attribution">
+            <div class="proof-avatar">HS</div>
+            Head of Security, global SaaS platform
+          </div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-block">
+            <div class="stat-block-num"><em>98</em>%</div>
+            <div class="stat-block-label">Location signal confidence accuracy</div>
+          </div>
+          <div class="stat-block">
+            <div class="stat-block-num">Under <em>1s</em></div>
+            <div class="stat-block-label">Geo mismatch detection latency</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+<!-- CERTS BAR -->
+<div class="certs-bar">
+  <div class="certs-inner">
+    <span class="certs-label reveal">Compliance &amp; Certifications</span>
+    <div class="cert-list">
+      <div class="cert-item reveal reveal-delay-1">
+        <div class="cert-badge-box">📋</div>
+        <div class="cert-detail">
+          <span class="cert-name">PCI DSS 4.0.1</span>
+          <span class="cert-sub">VikingCloud approved</span>
+        </div>
+      </div>
+      <div class="cert-item">
+        <div class="cert-badge-box">🔐</div>
+        <div class="cert-detail">
+          <span class="cert-name">SOC 2 Type II</span>
+          <span class="cert-sub">Annual audit</span>
+        </div>
+      </div>
+      <div class="cert-item">
+        <div class="cert-badge-box">🇪🇺</div>
+        <div class="cert-detail">
+          <span class="cert-name">GDPR</span>
+          <span class="cert-sub">EU data residency</span>
+        </div>
+      </div>
+    </div>
+    <a href="https://trust.cside.com" class="certs-trust-link">Visit Trust Center →</a>
+  </div>
+</div>
+
+<!-- HOW IT WORKS -->
+<section class="how">
+  <div class="how-inner">
+    <div class="how-eyebrow reveal"><span></span> How it works</div>
+    <h2 class="how-h2 reveal reveal-delay-1">Deploy in minutes. <em>Full coverage from day one.</em></h2>
+    <div class="how-steps">
+      <div class="how-step reveal reveal-delay-1">
+        <div class="step-num">01</div>
+        <span class="step-icon">🏷</span>
+        <h4 class="step-title">Add one tag</h4>
+        <p class="step-body">Add a single script tag. No SDKs, no infrastructure changes, no performance impact.</p>
+      </div>
+      <div class="how-step reveal reveal-delay-2">
+        <div class="step-num">02</div>
+        <span class="step-icon">🔬</span>
+        <h4 class="step-title">Inspect every script</h4>
+        <p class="step-body">c/side inspects every script executed in real visitor sessions. No sampling. No crawlers. Full coverage.</p>
+      </div>
+      <div class="how-step reveal reveal-delay-3">
+        <div class="step-num">03</div>
+        <span class="step-icon">⚡</span>
+        <h4 class="step-title">Alert on anomalies</h4>
+        <p class="step-body">Behaviour changes, new scripts, exfiltration attempts, and AI agent activity trigger real-time alerts to Slack, Teams, or webhooks, your team's workflow.</p>
+      </div>
+      <div class="how-step reveal reveal-delay-4">
+        <div class="step-num">04</div>
+        <span class="step-icon">📊</span>
+        <h4 class="step-title">Prove compliance</h4>
+        <p class="step-body">Generate PCI 6.4.3 and 11.6.1 reports on demand, with a full audit trail and exportable chargeback evidence.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SUPPORT -->
+<section class="support">
+  <div>
+    <div class="section-eyebrow reveal"><span class="eyebrow-line"></span> Support</div>
+    <h2 class="support-h2 reveal reveal-delay-1">Every customer gets <em>direct access to our team.</em></h2>
+    <p class="support-body">
+      No ticket queues. Every customer, from Free to Enterprise, gets a shared Slack or Teams channel with c/side engineers. Responses in minutes, not days.
+    </p>
+    <ul class="support-bullets">
+      <li>Shared Slack or Microsoft Teams channel, set up on day one</li>
+      <li>Direct line to security engineers, not first-line support</li>
+      <li>Feature requests go straight to the roadmap conversation</li>
+      <li>Response time SLA: under 15 minutes during business hours</li>
+    </ul>
+    <a href="#" class="btn-primary">Talk to a human →</a>
+  </div>
+
+  <div class="support-visual reveal reveal-delay-2">
+    <div class="slack-card">
+      <div class="slack-topbar">
+        <div class="slack-dots">
+          <div class="slack-dot sd-r"></div>
+          <div class="slack-dot sd-y"></div>
+          <div class="slack-dot sd-g"></div>
+        </div>
+        <span class="slack-channel-name"># acme-corp-cside-support</span>
+      </div>
+      <div class="slack-messages">
+        <div class="slack-message">
+          <div class="slack-av av-u">AC</div>
+          <div class="slack-msg-inner">
+            <div class="slack-msg-header">
+              <span class="slack-msg-name">Alex Chen</span>
+              <span class="slack-msg-time">9:14 AM</span>
+            </div>
+            <div class="slack-msg-text">Hey, we've got a new <code>gtm-loader.js</code> flagged on our checkout page. Can you check if this looks legitimate or if it's a supply chain issue?</div>
+          </div>
+        </div>
+        <div class="slack-message">
+          <div class="slack-av av-c">cs</div>
+          <div class="slack-msg-inner">
+            <div class="slack-msg-header">
+              <span class="slack-msg-name">Simon · c/side</span>
+              <span class="slack-msg-time">9:16 AM</span>
+              <span class="online-badge"><span class="live-dot"></span> online</span>
+            </div>
+            <div class="slack-msg-text">Looking now. I can see the script was first introduced at 09:02 UTC, 12 minutes ago. The payload has changed from yesterday's known-good baseline. I'd treat this as a potential supply chain compromise. Can you pause your GTM container while we investigate?</div>
+          </div>
+        </div>
+        <div class="slack-message">
+          <div class="slack-av av-u">AC</div>
+          <div class="slack-msg-inner">
+            <div class="slack-msg-header">
+              <span class="slack-msg-name">Alex Chen</span>
+              <span class="slack-msg-time">9:17 AM</span>
+            </div>
+            <div class="slack-msg-text">Done. This is exactly why we have you. Thank you.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING TEASE -->
+<div class="pricing-tease">
+  <div class="pt-inner">
+    <div class="pt-left">
+      <h2 class="pt-h2">Transparent pricing. Start free.</h2>
+      <p class="pt-body">From individual developers to enterprise teams. Scale as you grow.</p>
+      <a href="#" class="btn-primary">View all plans →</a>
+    </div>
+    <div class="pt-right">
+      <div class="plan-card">
+        <div class="plan-name">Free</div>
+        <div class="plan-price">$0 <span>/ month</span></div>
+        <div class="plan-desc">Script monitoring and basic inventory for small sites. No credit card required.</div>
+        <a href="#" class="plan-cta">Start free →</a>
+      </div>
+      <div class="plan-card featured">
+        <span class="plan-featured-tag">Most popular</span>
+        <div class="plan-name">Business</div>
+        <div class="plan-price">$99 <span>/ month</span></div>
+        <div class="plan-desc">Full PCI compliance, chargeback evidence, and priority support. 14-day trial.</div>
+        <a href="#" class="plan-cta amber">Start trial →</a>
+      </div>
+      <div class="plan-card">
+        <div class="plan-name">Enterprise</div>
+        <div class="plan-price">Custom</div>
+        <div class="plan-desc">Dedicated support, SLA, custom integrations, and volume pricing across domains.</div>
+        <a href="#" class="plan-cta">Talk to us →</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FAQ SECTION -->
+<section class="faq">
+  <div class="faq-inner">
+    <div class="faq-header reveal">
+      <div class="section-eyebrow" style="justify-content:center;margin-bottom:14px;"><span class="eyebrow-line"></span> Frequently asked questions</div>
+      <h2 class="faq-h2">Everything you need to know<br><em>about browser-layer security.</em></h2>
+    </div>
+
+    <div class="faq-list reveal reveal-delay-1">
+
+      <div class="faq-item" id="faq-1">
+        <button class="faq-question" onclick="toggleFaq(1)" aria-expanded="false">
+          <span class="faq-question-text">What is browser-layer security and why does my WAF not cover it?</span>
+          <span class="faq-chevron">▾</span>
+        </button>
+        <div class="faq-answer">
+          <div class="faq-answer-inner">
+            Browser-layer security monitors what executes inside your visitors' browsers after a page loads: third-party scripts, AI agents, bots, outbound data requests, and session behaviour. A WAF inspects traffic at the server boundary and stops there. It cannot see JavaScript running client-side, data leaving the browser via third-party script calls, or AI agents operating inside a real browser session. Those events happen after the server has delivered a clean page. c/side covers this gap with 100% session visibility and zero added latency, deployed via a single script tag.
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-item" id="faq-2">
+        <button class="faq-question" onclick="toggleFaq(2)" aria-expanded="false">
+          <span class="faq-question-text">What are PCI DSS 4.0.1 requirements 6.4.3 and 11.6.1, and how does c/side satisfy them?</span>
+          <span class="faq-chevron">▾</span>
+        </button>
+        <div class="faq-answer">
+          <div class="faq-answer-inner">
+            PCI DSS 4.0.1 requirement 6.4.3 mandates that organizations maintain a complete, authorized inventory of all scripts on their payment pages and document each script's purpose and integrity. Requirement 11.6.1 mandates continuous monitoring of payment page HTTP headers and script content for unauthorized changes. Both became mandatory on March 31, 2025. c/side satisfies both automatically: it inventories every script in real visitor sessions, generates AI-written justifications per script, monitors headers in real time, and produces audit-ready reports accepted by QSAs. VikingCloud has validated c/side for these requirements.
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-item" id="faq-3">
+        <button class="faq-question" onclick="toggleFaq(3)" aria-expanded="false">
+          <span class="faq-question-text">How does c/side detect AI agents and bots that look like real visitors?</span>
+          <span class="faq-chevron">▾</span>
+        </button>
+        <div class="faq-answer">
+          <div class="faq-answer-inner">
+            AI agent detection requires browser-layer behavioural analysis. AI agents operate inside real browser environments, rotate residential IPs, solve CAPTCHAs, and generate session patterns that defeat IP-based and signature-based detection. c/side identifies them by what executes inside the session: atypical device fingerprints, scripted typing cadence with zero variance, absence of natural mouse movement, autofill injection into payment fields, and behavioural signals inconsistent with human navigation. Detection happens before the server registers a login or transaction event. c/side achieves 99.7% device fingerprint accuracy across sessions (platform data, 2024 to 2025) with no SDK changes required.
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-item" id="faq-4">
+        <button class="faq-question" onclick="toggleFaq(4)" aria-expanded="false">
+          <span class="faq-question-text">What is a Magecart attack, and how does c/side stop web skimming?</span>
+          <span class="faq-chevron">▾</span>
+        </button>
+        <div class="faq-answer">
+          <div class="faq-answer-inner">
+            A Magecart attack is a web skimming attack in which malicious JavaScript is injected into a legitimate third-party script to steal payment card data and PII directly from the browser. The attack runs entirely client-side, after the server delivers a clean page. WAFs, SASTs, and pen tests see none of it. c/side monitors every third-party script payload in real visitor sessions, not simulated crawls. When a script changes, c/side detects it in under 60 seconds on average (platform data, 2024 to 2025), alerts the team, and logs the full payload for forensic investigation and PCI audit evidence.
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-item" id="faq-5">
+        <button class="faq-question" onclick="toggleFaq(5)" aria-expanded="false">
+          <span class="faq-question-text">How does c/side help win chargeback disputes?</span>
+          <span class="faq-chevron">▾</span>
+        </button>
+        <div class="faq-answer">
+          <div class="faq-answer-inner">
+            Winning a card dispute requires session-level evidence captured at transaction time, not reconstructed after a chargeback is filed. Visa and Mastercard dispute processes increasingly require device fingerprints, browser session timelines, script activity logs, and behavioural signals as proof. c/side captures full session context automatically for every transaction. When a dispute is filed, a pre-built evidence package is ready to export in 2 seconds. Merchants using c/side for chargeback evidence see an average 40% increase in dispute win rates (platform data, 2024 to 2025). c/side integrates directly with Chargebacks911 for end-to-end dispute management.
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- FINAL CTA -->
+<section class="final-cta">
+  <div class="cta-grid-bg"></div>
+  <div class="cta-inner">
+    <div class="cta-kicker">Get started today</div>
+    <h2 class="cta-h2">See what's running in <em>your visitors' browsers.</em></h2>
+    <p class="cta-sub">Add one script tag and get full browser-layer visibility: scripts, sessions, compliance, fraud detection, and AI agent monitoring, in minutes. 100% session coverage. Zero added latency. No SDK changes required.</p>
+    <div class="cta-actions">
+      <a href="#" class="btn-primary">Start for free →</a>
+      <a href="#" class="btn-secondary">Book a demo</a>
+    </div>
+    <p class="cta-note">No credit card required for free plan · Business trial is 14 days · Cancel any time</p>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-top">
+    <div>
+      <div class="footer-logo-wrap">
+        <div class="footer-logo-mark">
+          <svg width="12" height="12" viewBox="0 0 14 14" fill="none">
+            <rect x="1" y="1" width="5" height="5" fill="#0a0a09"/>
+            <rect x="8" y="1" width="5" height="5" fill="#0a0a09" opacity="0.4"/>
+            <rect x="1" y="8" width="5" height="5" fill="#0a0a09" opacity="0.4"/>
+            <rect x="8" y="8" width="5" height="5" fill="#0a0a09"/>
+          </svg>
+        </div>
+        <span class="footer-logo-name">c/side</span>
+      </div>
+      <p class="footer-tagline">c/side is a browser-layer security platform that gives organizations full visibility into what is executing inside their visitors' browsers: scripts, AI agents, bots, fraud signals, and compliance evidence. The attack surface that begins where your WAF ends.</p>
+      <div class="footer-email">
+        <span>✉</span> hello@cside.com
+      </div>
+      <div class="footer-socials">
+        <a href="#" class="social-btn">in</a>
+        <a href="#" class="social-btn">𝕏</a>
+        <a href="#" class="social-btn">gh</a>
+      </div>
+    </div>
+    <div class="footer-cols">
+      <div>
+        <div class="footer-col-label">Solutions</div>
+        <ul class="footer-col-links">
+          <li><a href="#">PCI Shield</a></li>
+          <li><a href="#">Client-side Security</a></li>
+          <li><a href="#">Chargeback Evidence</a></li>
+          <li><a href="#">AI Agent Detection</a></li>
+          <li><a href="#">Privacy Watch</a></li>
+          <li><a href="#">VPN Detection</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="footer-col-label">Compare</div>
+        <ul class="footer-col-links">
+          <li><a href="#">vs Cloudflare Page Shield</a></li>
+          <li><a href="#">vs Akamai Page Integrity</a></li>
+          <li><a href="#">vs Jscrambler</a></li>
+          <li><a href="#">vs Imperva</a></li>
+          <li><a href="#">vs Feroot</a></li>
+          <li><a href="#">vs Human Security</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="footer-col-label">Resources</div>
+        <ul class="footer-col-links">
+          <li><a href="#">Documentation</a></li>
+          <li><a href="#">Blog</a></li>
+          <li><a href="#">Changelog</a></li>
+          <li><a href="#">Pricing</a></li>
+          <li><a href="#">Glossary</a></li>
+          <li><a href="#">Domain Directory</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="footer-col-label">Company</div>
+        <ul class="footer-col-links">
+          <li><a href="#">About</a></li>
+          <li><a href="#">Partners</a></li>
+          <li><a href="#">Press</a></li>
+          <li><a href="#">Careers</a></li>
+          <li><a href="#">Trust Center</a></li>
+          <li><a href="#">Contact</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-bottom">
+    <div class="footer-legal">© 2026 Client-side Development, Inc.</div>
+    <div class="footer-legal-links">
+      <a href="#">Privacy Policy</a>
+      <a href="#">Cookie Notice</a>
+      <a href="#">Terms</a>
+      <a href="#">Do Not Sell</a>
+    </div>
+    <div class="status-pill">
+      <span style="color:#3db87a">●</span> All Systems Operational
+    </div>
+  </div>
+</footer>
+
+<script>
+// ─── HERO ANIMATION: 6-SCENE BROWSER ARCHITECTURE ───
+(function() {
+  const canvas = document.getElementById('heroCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = 520, H = 420;
+
+  // Scene timing (seconds each scene plays)
+  const SCENES = [2.2, 2.0, 2.0, 1.6, 2.2, 2.0];
+  const TOTAL = SCENES.reduce((a,b)=>a+b,0);
+  let t = 0, last = null, animId;
+
+  // Colours
+  const C = {
+    bg:     '#0f172a',
+    surface:'#1e293b',
+    border: '#334155',
+    blue:   '#1e40af',
+    blueL:  '#3b82f6',
+    blueXL: '#93c5fd',
+    green:  '#22c55e',
+    amber:  '#f59e0b',
+    red:    '#ef4444',
+    text:   '#f8fafc',
+    muted:  '#94a3b8',
+    dim:    '#475569',
+  };
+
+  function lerp(a,b,t){ return a+(b-a)*t; }
+  function clamp(v,a,b){ return Math.max(a,Math.min(b,v)); }
+  function easeOut(t){ return 1-Math.pow(1-t,3); }
+  function easeInOut(t){ return t<0.5?4*t*t*t:(1-Math.pow(-2*t+2,3)/2); }
+
+  // Rounded rect helper — no roundRect API needed
+  function rr(x,y,w,h,r,fill,stroke){
+    var r2=Math.min(r,w/2,h/2);
+    ctx.beginPath();
+    ctx.moveTo(x+r2,y);
+    ctx.lineTo(x+w-r2,y);ctx.quadraticCurveTo(x+w,y,x+w,y+r2);
+    ctx.lineTo(x+w,y+h-r2);ctx.quadraticCurveTo(x+w,y+h,x+w-r2,y+h);
+    ctx.lineTo(x+r2,y+h);ctx.quadraticCurveTo(x,y+h,x,y+h-r2);
+    ctx.lineTo(x,y+r2);ctx.quadraticCurveTo(x,y,x+r2,y);
+    ctx.closePath();
+    if(fill){ ctx.fillStyle=fill; ctx.fill(); }
+    if(stroke){ ctx.strokeStyle=stroke; ctx.lineWidth=1; ctx.stroke(); }
+  }
+
+  // Text helper
+  function txt(s,x,y,size,color,align='left',weight='400'){
+    ctx.font=`${weight} ${size}px Inter, system-ui, sans-serif`;
+    ctx.fillStyle=color;
+    ctx.textAlign=align;
+    ctx.fillText(s,x,y);
+  }
+
+  // Node box
+  function node(x,y,w,h,label,sublabel,accent,alpha=1){
+    ctx.globalAlpha=alpha;
+    rr(x,y,w,h,6,C.surface,C.border);
+    // accent left bar
+    ctx.globalAlpha=alpha;
+    rr(x,y,3,h,3,accent||C.blue);
+    txt(label,x+14,y+h/2-(sublabel?6:0),11,C.text,'left','600');
+    if(sublabel) txt(sublabel,x+14,y+h/2+10,10,C.muted,'left','400');
+    ctx.globalAlpha=1;
+  }
+
+  // Arrow between two points
+  function arrow(x1,y1,x2,y2,color,alpha=1,progress=1){
+    ctx.globalAlpha=alpha;
+    const dx=x2-x1, dy=y2-y1, len=Math.sqrt(dx*dx+dy*dy);
+    const ex=x1+dx*progress, ey=y1+dy*progress;
+    ctx.beginPath();
+    ctx.moveTo(x1,y1);
+    ctx.lineTo(ex,ey);
+    ctx.strokeStyle=color;
+    ctx.lineWidth=1.5;
+    ctx.setLineDash([4,3]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    if(progress>=0.95){
+      const angle=Math.atan2(dy,dx);
+      ctx.beginPath();
+      ctx.moveTo(ex,ey);
+      ctx.lineTo(ex-8*Math.cos(angle-0.4),ey-8*Math.sin(angle-0.4));
+      ctx.lineTo(ex-8*Math.cos(angle+0.4),ey-8*Math.sin(angle+0.4));
+      ctx.closePath();
+      ctx.fillStyle=color;
+      ctx.fill();
+    }
+    ctx.globalAlpha=1;
+  }
+
+  // Animated moving dot along a path
+  function movingDot(x1,y1,x2,y2,progress,color){
+    const x=lerp(x1,x2,progress), y=lerp(y1,y2,progress);
+    ctx.beginPath();
+    ctx.arc(x,y,3.5,0,Math.PI*2);
+    ctx.fillStyle=color;
+    ctx.fill();
+  }
+
+  // ─── SCENE RENDERERS ───
+
+  function sceneBase(alpha){
+    // Architecture: Visitor -> Browser -> Server
+    // Visitor
+    rr(30,160,90,50,6,C.surface,C.border);
+    ctx.globalAlpha=alpha;
+    txt('👤',52,192,18,C.text,'left');
+    txt('Visitor',68,192,11,C.muted,'left');
+    ctx.globalAlpha=1;
+    // Browser box
+    rr(170,120,160,130,6,C.surface,C.border);
+    ctx.globalAlpha=alpha;
+    txt('BROWSER',205,140,9,C.dim,'left','600');
+    ctx.globalAlpha=1;
+    // Server
+    rr(390,160,100,50,6,C.surface,C.border);
+    ctx.globalAlpha=alpha;
+    rr(393,163,3,44,3,C.green);
+    txt('Server',407,183,11,C.text,'left','600');
+    txt('WAF / CDN',407,196,10,C.muted,'left');
+    ctx.globalAlpha=1;
+    // Shield on server
+    ctx.globalAlpha=alpha*0.7;
+    txt('🛡',474,177,16,C.text,'left');
+    ctx.globalAlpha=1;
+  }
+
+  function scene1(p){
+    // Scene 1: Architecture, traffic flows normally
+    const a=easeOut(Math.min(p*3,1));
+    sceneBase(a);
+    // Visitor to browser arrow
+    arrow(122,185,168,185,C.blueL,a,Math.min(p*2,1));
+    // Browser to server
+    arrow(332,185,388,185,C.green,a,Math.min(p*2,1));
+    // Label
+    ctx.globalAlpha=a;
+    txt('Traffic flows normally',170,310,11,C.muted,'left');
+    ctx.globalAlpha=1;
+    // Script tags inside browser
+    if(p>0.4){
+      const sa=easeOut((p-0.4)*3);
+      ctx.globalAlpha=sa*a;
+      rr(180,150,60,18,3,C.surface,C.dim);
+      txt('analytics.js',184,163,9,C.muted,'left');
+      rr(180,174,55,18,3,C.surface,C.dim);
+      txt('payment.js',184,187,9,C.muted,'left');
+      rr(180,198,50,18,3,C.surface,C.dim);
+      txt('chat.js',184,211,9,C.muted,'left');
+      ctx.globalAlpha=1;
+    }
+  }
+
+  function scene2(p){
+    // Scene 2: Zoom into browser — scripts fire outbound, bypass server shield
+    sceneBase(1);
+    arrow(122,185,168,185,C.blueL,1,1);
+    arrow(332,185,388,185,C.green,0.3,1); // dimmed server flow
+    // Scripts in browser
+    const scripts = [
+      {name:'analytics.js',y:148,col:C.amber},
+      {name:'chat.js',     y:170,col:C.amber},
+      {name:'payment.js',  y:192,col:C.red},
+    ];
+    scripts.forEach((s,i)=>{
+      const sa=easeOut(Math.min((p*3-i*0.3),1));
+      ctx.globalAlpha=sa;
+      rr(178,s.y-10,65,16,3,C.surface,s.col);
+      txt(s.name,182,s.y+1,9,s.col,'left');
+      ctx.globalAlpha=1;
+      // Outbound data arrow — goes DOWN and around server
+      if(p>0.35+i*0.1){
+        const dp=easeOut(Math.min((p-0.35-i*0.1)*3,1));
+        arrow(245,s.y-2,380,280+i*18,s.col,0.8,dp);
+        if(dp>0.8) movingDot(245,s.y-2,380,280+i*18,((p-0.35-i*0.1)*3)%1,s.col);
+      }
+    });
+    // "Bypasses server" label
+    if(p>0.6){
+      const la=easeOut((p-0.6)*4);
+      ctx.globalAlpha=la;
+      rr(320,280,160,24,4,'rgba(239,68,68,0.1)','rgba(239,68,68,0.4)');
+      txt('Data bypasses server',327,296,10,C.red,'left','500');
+      ctx.globalAlpha=1;
+    }
+  }
+
+  function scene3(p){
+    // Scene 3: AI agent at login/checkout — looks human, no server alerts
+    sceneBase(0.5);
+    // AI agent badge
+    const aa=easeOut(Math.min(p*2,1));
+    ctx.globalAlpha=aa;
+    rr(25,155,100,60,6,'rgba(245,158,11,0.08)','rgba(245,158,11,0.5)');
+    txt('🤖',38,188,18,C.text,'left');
+    txt('AI Agent',62,183,11,C.amber,'left','600');
+    txt('headless browser',62,197,9,C.muted,'left');
+    ctx.globalAlpha=1;
+    // Agent interacting with browser
+    arrow(127,185,168,185,C.amber,aa,Math.min(p*2,1));
+    // Login and checkout flows inside browser
+    if(p>0.3){
+      const fa=easeOut((p-0.3)*3);
+      ctx.globalAlpha=fa;
+      rr(178,140,140,22,3,'rgba(245,158,11,0.08)','rgba(245,158,11,0.3)');
+      txt('⟶ /login',186,155,10,C.amber,'left');
+      rr(178,168,140,22,3,'rgba(245,158,11,0.08)','rgba(245,158,11,0.3)');
+      txt('⟶ /checkout',186,183,10,C.amber,'left');
+      rr(178,196,140,22,3,'rgba(245,158,11,0.08)','rgba(245,158,11,0.3)');
+      txt('⟶ /account/create',186,211,10,C.amber,'left');
+      ctx.globalAlpha=1;
+    }
+    // No server-side alert
+    if(p>0.55){
+      const na=easeOut((p-0.55)*4);
+      ctx.globalAlpha=na;
+      rr(368,148,122,50,6,C.surface,'rgba(100,116,139,0.4)');
+      txt('🛡',376,168,14,C.dim,'left');
+      txt('No alert fired',395,167,10,C.dim,'left','500');
+      txt('Server sees nothing',395,181,9,C.muted,'left');
+      ctx.globalAlpha=1;
+    }
+  }
+
+  function scene4(p){
+    // Scene 4: "No visibility" overlay
+    sceneBase(1);
+    const oa=easeInOut(Math.min(p*2,1));
+    ctx.globalAlpha=oa*0.55;
+    ctx.fillStyle='#0f172a';
+    ctx.fillRect(0,0,W,H);
+    ctx.globalAlpha=1;
+    // Big text
+    const ta=easeOut(Math.min((p-0.1)*3,1));
+    ctx.globalAlpha=ta;
+    ctx.font='bold 32px Inter, system-ui, sans-serif';
+    ctx.fillStyle=C.red;
+    ctx.textAlign='center';
+    ctx.fillText('No visibility.',W/2,H/2-18);
+    ctx.font='400 15px Inter, system-ui, sans-serif';
+    ctx.fillStyle=C.muted;
+    ctx.fillText('Scripts, agents, fraud — all invisible.',W/2,H/2+14);
+    ctx.textAlign='left';
+    ctx.globalAlpha=1;
+  }
+
+  function scene5(p){
+    // Scene 5: c/side activates — dashboard appears, everything visible
+    sceneBase(1);
+    const da=easeOut(Math.min(p*2.5,1));
+    // c/side label in browser
+    ctx.globalAlpha=da;
+    rr(178,130,140,20,3,'rgba(30,64,175,0.15)','rgba(59,130,246,0.6)');
+    txt('⚡ c/side active',186,144,10,C.blueXL,'left','600');
+    ctx.globalAlpha=1;
+    // Dashboard panel emerging from right
+    const px=lerp(W+10,W-210,easeOut(Math.min(p*1.8,1)));
+    ctx.globalAlpha=da;
+    rr(px,40,195,340,8,C.surface,C.border);
+    // Dashboard header
+    rr(px,40,195,30,8,C.blue);
+    txt('c/side dashboard',px+10,60,10,C.text,'left','600');
+    // Stats rows
+    const rows=[
+      {label:'Scripts',val:'34 monitored',col:C.green},
+      {label:'Threats',val:'2 blocked',col:C.red},
+      {label:'AI agents',val:'1 detected',col:C.amber},
+      {label:'PCI status',val:'Compliant',col:C.green},
+      {label:'Data flows',val:'14 logged',col:C.blueXL},
+    ];
+    rows.forEach((r,i)=>{
+      const ry=easeOut(Math.min((p*2-i*0.15),1));
+      ctx.globalAlpha=da*ry;
+      rr(px+10,80+i*46,175,38,5,C.bg||'#1e293b',C.border);
+      rr(px+10,80+i*46,3,38,2,r.col);
+      txt(r.label,px+20,100+i*46,10,C.muted,'left');
+      txt(r.val,px+20,115+i*46,11,C.text,'left','600');
+      ctx.globalAlpha=1;
+    });
+    ctx.globalAlpha=1;
+  }
+
+  function scene6(p){
+    // Scene 6: Final — 7 use-case panels light up
+    const panels=[
+      {label:'PCI',      col:C.blueXL},
+      {label:'Privacy',  col:C.green},
+      {label:'Scripts',  col:C.amber},
+      {label:'AI Agents',col:C.red},
+      {label:'ATO',      col:C.red},
+      {label:'Chargebacks',col:C.green},
+      {label:'Geo',      col:C.blueXL},
+    ];
+    const cols=4, rows_=Math.ceil(panels.length/cols);
+    const pw=108, ph=62, gap=10;
+    const startX=(W-(cols*pw+(cols-1)*gap))/2;
+    const startY=60;
+    panels.forEach((panel,i)=>{
+      const col_=i%cols, row_=Math.floor(i/cols);
+      const x=startX+col_*(pw+gap);
+      const y=startY+row_*(ph+gap);
+      const delay=i*0.09;
+      const pa=easeOut(clamp((p*2-delay)*3,0,1));
+      ctx.globalAlpha=pa;
+      rr(x,y,pw,ph,6,C.surface,panel.col);
+      rr(x,y,pw,5,3,panel.col);
+      txt(panel.label,x+pw/2,y+ph/2+2,11,C.text,'center','600');
+      ctx.globalAlpha=pa*0.6;
+      ctx.beginPath();
+      ctx.arc(x+pw-14,y+14,4,0,Math.PI*2);
+      ctx.fillStyle=panel.col;
+      ctx.fill();
+      ctx.globalAlpha=1;
+    });
+    // Final tagline
+    const ta=easeOut(clamp((p-0.5)*3,0,1));
+    ctx.globalAlpha=ta;
+    ctx.font='500 13px Inter, system-ui, sans-serif';
+    ctx.fillStyle=C.blueXL;
+    ctx.textAlign='center';
+    ctx.fillText('Full browser-layer visibility. One script tag.',W/2,H-32);
+    ctx.textAlign='left';
+    ctx.globalAlpha=1;
+  }
+
+  function getScene(elapsed){
+    let acc=0;
+    for(let i=0;i<SCENES.length;i++){
+      acc+=SCENES[i];
+      if(elapsed<acc) return {idx:i, p:(elapsed-(acc-SCENES[i]))/SCENES[i]};
+    }
+    return {idx:SCENES.length-1, p:1};
+  }
+
+  function draw(elapsed){
+    ctx.clearRect(0,0,W,H);
+    // Background
+    ctx.fillStyle=C.bg;
+    ctx.fillRect(0,0,W,H);
+    // Grid dots
+    ctx.fillStyle='rgba(59,130,246,0.06)';
+    for(let gx=20;gx<W;gx+=32) for(let gy=20;gy<H;gy+=32){
+      ctx.beginPath(); ctx.arc(gx,gy,1,0,Math.PI*2); ctx.fill();
+    }
+    const {idx,p}=getScene(elapsed%TOTAL);
+    if(idx===0) scene1(p);
+    else if(idx===1) scene2(p);
+    else if(idx===2) scene3(p);
+    else if(idx===3) scene4(p);
+    else if(idx===4) scene5(p);
+    else scene6(p);
+    // Scene indicator dots
+    const dotY=H-14, dotSpacing=14, dotsW=(SCENES.length-1)*dotSpacing;
+    const dotStartX=(W-dotsW)/2;
+    SCENES.forEach((_,i)=>{
+      ctx.beginPath();
+      ctx.arc(dotStartX+i*dotSpacing,dotY,i===idx?3.5:2,0,Math.PI*2);
+      ctx.fillStyle=i===idx?C.blueXL:C.dim;
+      ctx.fill();
+    });
+  }
+
+  function loop(ts){
+    if(!last) last=ts;
+    t+=(ts-last)/1000;
+    last=ts;
+    draw(t);
+    animId=requestAnimationFrame(loop);
+  }
+  animId=requestAnimationFrame(loop);
+})();
+</script>
+
+<script>
+(function() {
+  var canvas = document.getElementById('problemCanvas');
+  if (!canvas) return;
+  var ctx = canvas.getContext('2d');
+  var W = 440, H = 320;
+  var SCENE_DUR = 3.8, NUM_SCENES = 3;
+  var t = 0, last = null;
+
+  var C = {
+    bg:'#0f172a', surface:'#1e293b', border:'#334155',
+    blue:'#1e40af', blueL:'#3b82f6', blueXL:'#93c5fd',
+    green:'#22c55e', amber:'#f59e0b', red:'#ef4444',
+    text:'#f1f5f9', muted:'#94a3b8', dim:'#475569',
+    mono:'400 10px "JetBrains Mono",monospace',
+    mono9:'400 9px "JetBrains Mono",monospace',
+    sans11:'500 11px Inter,system-ui,sans-serif',
+    sans10:'400 10px Inter,system-ui,sans-serif',
+  };
+
+  function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
+  function easeOut(v){v=clamp(v,0,1);return 1-Math.pow(1-v,3);}
+  function easeIO(v){v=clamp(v,0,1);return v<0.5?2*v*v:1-Math.pow(-2*v+2,2)/2;}
+
+  // Rounded rect without roundRect API
+  function rr(x,y,w,h,r,fill,stroke){
+    var r2=Math.min(r,w/2,h/2);
+    ctx.beginPath();
+    ctx.moveTo(x+r2,y);
+    ctx.lineTo(x+w-r2,y);ctx.quadraticCurveTo(x+w,y,x+w,y+r2);
+    ctx.lineTo(x+w,y+h-r2);ctx.quadraticCurveTo(x+w,y+h,x+w-r2,y+h);
+    ctx.lineTo(x+r2,y+h);ctx.quadraticCurveTo(x,y+h,x,y+h-r2);
+    ctx.lineTo(x,y+r2);ctx.quadraticCurveTo(x,y,x+r2,y);
+    ctx.closePath();
+    if(fill){ctx.fillStyle=fill;ctx.fill();}
+    if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=1;ctx.stroke();}
+  }
+
+  function txt(font,s,x,y,color,align){
+    ctx.font=font;ctx.fillStyle=color;
+    ctx.textAlign=align||'left';ctx.fillText(s,x,y);
+  }
+
+  function chrome(title,sub,dotCol,dotLabel){
+    // window bg
+    rr(0,0,W,H,8,C.bg,null);
+    // topbar
+    rr(0,0,W,38,8,C.surface,null);
+    // traffic dots
+    ['#ef4444','#f59e0b','#22c55e'].forEach(function(col,i){
+      ctx.beginPath();ctx.arc(16+i*14,19,4.5,0,Math.PI*2);
+      ctx.fillStyle=col;ctx.fill();
+    });
+    txt(C.mono9,title,W/2,23,C.muted,'center');
+    // status pill
+    var pw=90;
+    rr(W-pw-10,10,pw,18,9,'rgba(34,197,94,0.12)','rgba(34,197,94,0.3)');
+    ctx.beginPath();ctx.arc(W-pw-10+10,19,3,0,Math.PI*2);
+    ctx.fillStyle=dotCol;ctx.fill();
+    txt(C.mono9,dotLabel,W-pw-10+18,23,dotCol,'left');
+    // sub bar
+    rr(0,38,W,26,0,'rgba(30,64,175,0.12)',null);
+    txt(C.mono9,sub,14,55,C.blueXL,'left');
+  }
+
+  // ── SCENE 0: Script Inventory ──
+  function scene0(p){
+    var sd=SCENE_DUR, flipAt=1.3;
+    var fp=easeOut(clamp((p*sd-flipAt)/0.5,0,1));
+    chrome('checkout.mystore.com','SCRIPTS DETECTED — 34 TOTAL',C.green,'● LIVE');
+    var rows=[
+      {n:'js.stripe.com/v3/',s:'TRUSTED',c:C.green,bg:'rgba(34,197,94,0.1)',hl:0},
+      {n:'google-analytics.com/gtag.js',s:'TRUSTED',c:C.green,bg:'rgba(34,197,94,0.1)',hl:0},
+      {n:'cdn.intercom.io/widget/bundle.js',s:fp>0?'CHANGED':'TRUSTED',c:fp>0?C.amber:C.green,bg:fp>0?'rgba(245,158,11,0.12)':'rgba(34,197,94,0.1)',hl:fp>0?1:0},
+      {n:'analytics-cdn.xyz/collect.min.js',s:fp>0?'BLOCKED':'UNREVIEWED',c:fp>0?C.red:C.amber,bg:fp>0?'rgba(239,68,68,0.12)':'rgba(245,158,11,0.1)',hl:fp>0?1:0},
+    ];
+    rows.forEach(function(r,i){
+      var ra=easeOut(clamp(p*sd*1.1-i*0.18,0,1));
+      ctx.globalAlpha=ra;
+      var y=74+i*52;
+      rr(8,y,W-16,42,5,r.bg,r.hl?r.c:null);
+      if(r.hl){
+        var pulse=0.06*Math.sin(t*4);
+        ctx.strokeStyle=r.c;ctx.lineWidth=1;
+        ctx.globalAlpha=ra*(0.5+pulse);
+        rr(8,y,W-16,42,5,null,r.c);
+      }
+      ctx.globalAlpha=ra;
+      txt(C.mono9,r.n,18,y+16,r.hl?C.text:C.muted,'left');
+      // badge
+      var bw=60;
+      rr(W-bw-14,y+11,bw,19,9,r.bg,r.c);
+      txt(C.mono9,r.s,W-bw-14+bw/2,y+24,r.c,'center');
+      ctx.globalAlpha=1;
+    });
+    // footer
+    rr(0,H-32,W,32,0,C.surface,null);
+    txt(C.mono9,'26 more scripts · 8 authorised by you',14,H-12,C.dim,'left');
+    ctx.globalAlpha=easeOut(clamp(p*sd-1.8,0,1));
+    txt(C.sans11,'View full report →',W-130,H-12,C.blueXL,'left');
+    ctx.globalAlpha=1;
+  }
+
+  // ── SCENE 1: AI Agent Session ──
+  function scene1(p){
+    chrome('session-7f4a2b · Login Flow','AI AGENT DETECTION · BROWSER SIGNALS',C.amber,'● FLAGGING');
+    var signals=[
+      {l:'Visitor type',v:'Headless browser detected',c:C.red,i:'!'},
+      {l:'Typing cadence',v:'Scripted (0ms variance)',c:C.amber,i:'!'},
+      {l:'Mouse movement',v:'None before form submit',c:C.amber,i:'!'},
+      {l:'IP classification',v:'Residential proxy rotation',c:C.amber,i:'!'},
+      {l:'CAPTCHA solve',v:'External service detected',c:C.red,i:'!'},
+    ];
+    signals.forEach(function(s,i){
+      var ra=easeOut(clamp(p*SCENE_DUR*0.6-i*0.18,0,1));
+      ctx.globalAlpha=ra;
+      var y=64+i*46;
+      rr(8,y,W-16,36,5,'rgba(30,41,59,0.7)',null);
+      txt(C.mono9,s.l,16,y+13,C.muted,'left');
+      txt(C.sans10,s.v,16,y+27,s.c,'left');
+      // icon
+      var pulse=0.65+0.35*Math.sin(t*3+i);
+      ctx.globalAlpha=ra*pulse;
+      rr(W-36,y+8,20,20,10,'rgba(239,68,68,0.15)',s.c);
+      txt(C.mono,s.i,W-36+10,y+22,s.c,'center');
+      ctx.globalAlpha=1;
+    });
+    // risk bar
+    var bra=easeOut(clamp(p*SCENE_DUR-1.8,0,1));
+    ctx.globalAlpha=bra;
+    rr(8,H-40,W-16,12,3,C.surface,null);
+    rr(8,H-40,(W-16)*0.87*bra,12,3,C.red,null);
+    txt(C.mono9,'RISK SCORE  87/100  —  HIGH CONFIDENCE BOT',14,H-14,C.red,'left');
+    ctx.globalAlpha=1;
+  }
+
+  // ── SCENE 2: Fraud Evidence ──
+  function scene2(p){
+    chrome('order-8831 · Transaction','SESSION EVIDENCE · CHARGEBACK PACKAGE READY',C.blueXL,'● READY');
+    var rows=[
+      {l:'Device fingerprint',a:'iPhone 14 · Safari',b:'Windows 11 · Chrome VPN'},
+      {l:'IP geolocation',a:'Brussels, Belgium',b:'Lagos (proxy detected)'},
+      {l:'Session duration',a:'8m 22s (normal)',b:'0m 14s (automated)'},
+      {l:'Payment fields',a:'Typed normally',b:'Autofill inject detected'},
+    ];
+    // headers
+    var ha=easeOut(clamp(p*SCENE_DUR*0.8,0,1));
+    ctx.globalAlpha=ha;
+    txt(C.mono9,'SIGNAL',16,56,C.dim,'left');
+    txt(C.mono9,'HISTORY',180,56,C.dim,'left');
+    txt(C.mono9,'THIS SESSION',314,56,C.dim,'left');
+    ctx.globalAlpha=1;
+    rows.forEach(function(r,i){
+      var ra=easeOut(clamp(p*SCENE_DUR*0.55-i*0.2,0,1));
+      ctx.globalAlpha=ra;
+      var y=64+i*52;
+      rr(8,y,W-16,42,5,i%2===0?'rgba(30,41,59,0.6)':'rgba(15,23,42,0.3)',null);
+      txt(C.mono9,r.l,16,y+14,C.muted,'left');
+      txt(C.sans10,r.a,180,y+28,C.green,'left');
+      txt(C.sans10,r.b,314,y+28,C.red,'left');
+      // mismatch
+      ctx.globalAlpha=ra*(0.6+0.4*Math.sin(t*3.5+i));
+      ctx.font='600 11px Inter,system-ui,sans-serif';
+      ctx.fillStyle=C.red;ctx.textAlign='center';
+      ctx.fillText('≠',167,y+28);
+      ctx.textAlign='left';
+      ctx.globalAlpha=1;
+    });
+    // export button
+    var ba=easeOut(clamp(p*SCENE_DUR-2.4,0,1));
+    ctx.globalAlpha=ba;
+    rr(8,H-42,W-16,30,6,'rgba(30,64,175,0.15)',C.blueL);
+    ctx.font='600 11px Inter,system-ui,sans-serif';
+    ctx.fillStyle=C.blueXL;ctx.textAlign='center';
+    ctx.fillText('Export dispute package  →',W/2,H-22);
+    ctx.textAlign='left';
+    ctx.globalAlpha=1;
+  }
+
+  function getScene(elapsed){
+    var cycle=elapsed%(SCENE_DUR*NUM_SCENES);
+    return {idx:Math.floor(cycle/SCENE_DUR)|0, p:(cycle%SCENE_DUR)/SCENE_DUR};
+  }
+
+  function draw(elapsed){
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle=C.bg;ctx.fillRect(0,0,W,H);
+    // dot grid
+    ctx.fillStyle='rgba(59,130,246,0.05)';
+    for(var gx=20;gx<W;gx+=28)for(var gy=20;gy<H;gy+=28){
+      ctx.beginPath();ctx.arc(gx,gy,1,0,Math.PI*2);ctx.fill();
+    }
+    var sp=getScene(elapsed);
+    var fadeStart=0.88;
+    var fa=sp.p>fadeStart?easeIO((sp.p-fadeStart)/(1-fadeStart)):0;
+    ctx.globalAlpha=1-fa*0.6;
+    if(sp.idx===0)scene0(sp.p);
+    else if(sp.idx===1)scene1(sp.p);
+    else scene2(sp.p);
+    ctx.globalAlpha=1;
+    // scene dots
+    var dotY=H-9,dSpacing=18,dStart=(W-(NUM_SCENES-1)*dSpacing)/2;
+    for(var i=0;i<NUM_SCENES;i++){
+      var active=i===sp.idx;
+      ctx.beginPath();ctx.arc(dStart+i*dSpacing,dotY,active?3.5:2,0,Math.PI*2);
+      ctx.fillStyle=active?C.blueXL:C.dim;ctx.fill();
+      if(active){
+        ctx.beginPath();
+        ctx.arc(dStart+i*dSpacing,dotY,5.5,-Math.PI/2,-Math.PI/2+sp.p*Math.PI*2);
+        ctx.strokeStyle='rgba(147,197,253,0.4)';ctx.lineWidth=1.5;ctx.stroke();
+      }
+    }
+    // scene label
+    var labels=['Script Compromise','AI Agent Detected','Fraud Evidence'];
+    ctx.globalAlpha=0.65;
+    ctx.font=C.mono9;ctx.fillStyle=C.blueXL;ctx.textAlign='left';
+    ctx.fillText('● '+labels[sp.idx],14,H-9);
+    ctx.globalAlpha=1;
+  }
+
+  function loop(ts){
+    if(!last)last=ts;
+    t+=(ts-last)/1000;last=ts;
+    draw(t);requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+
+  // Sync highlight with problem cards
+  function syncCards(){
+    var sp=getScene(t);
+    document.querySelectorAll('.problem-card').forEach(function(card,i){
+      if(i===sp.idx){
+        card.style.borderColor='#3b82f6';
+        card.style.boxShadow='0 0 0 3px rgba(59,130,246,0.12),0 4px 12px rgba(0,0,0,0.08)';
+        card.style.transform='translateY(-2px)';
+      } else {
+        card.style.borderColor='';
+        card.style.boxShadow='';
+        card.style.transform='';
+      }
+    });
+    requestAnimationFrame(syncCards);
+  }
+  requestAnimationFrame(syncCards);
+})();
+</script>
+<script>
+// Tab switching
+function switchTab(index) {
+  document.querySelectorAll('.uc-tab').forEach((tab, i) => {
+    tab.classList.toggle('active', i === index);
+  });
+  document.querySelectorAll('.uc-panel').forEach((panel, i) => {
+    panel.classList.toggle('active', i === index);
+  });
+}
+
+// FAQ accordion
+function toggleFaq(n) {
+  const item = document.getElementById('faq-' + n);
+  const btn = item.querySelector('.faq-question');
+  const isOpen = item.classList.contains('open');
+  // Close all
+  document.querySelectorAll('.faq-item').forEach(el => {
+    el.classList.remove('open');
+    el.querySelector('.faq-question').setAttribute('aria-expanded', 'false');
+  });
+  // Open clicked if it was closed
+  if (!isOpen) {
+    item.classList.add('open');
+    btn.setAttribute('aria-expanded', 'true');
+  }
+}
+
+// Scroll reveal
+const revealObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+      revealObserver.unobserve(entry.target);
+    }
+  });
+}, {
+  threshold: 0.12,
+  rootMargin: '0px 0px -40px 0px'
+});
+
+document.querySelectorAll('.reveal').forEach(el => {
+  revealObserver.observe(el);
+});
+</script>
+</body>
+</html>

@@ -6,7 +6,9 @@ A user mocked up designs in HTML/CSS/JS using an AI design tool, then exported t
 
 ## What you should do — IMPORTANT
 
-**Find the primary design file under `cside-design-system/project/` and read it top to bottom.** Then **follow its imports**: open every file it pulls in (shared components, CSS, scripts) so you understand how the pieces fit together before you start implementing.
+**Read `project/cside-design-skill.md` top to bottom** — it is the primary design file (brand, type, color, component recipes, voice). Then **follow its imports**: open every file it pulls in (`project/tokens.css`, `project/ui-kit.html`, assets, fonts) so you understand how the pieces fit together before you start implementing.
+
+For **writing and editing copy** (landing pages, blog posts, headlines, proofreading), use the skills and agents in `.claude/` — see [`.claude/README.md`](.claude/README.md).
 
 **If anything is ambiguous, ask the user to confirm before you start implementing.** It's much cheaper to clarify scope up front than to build the wrong thing.
 
@@ -18,5 +20,7 @@ The design medium is **HTML/CSS/JS** — these are prototypes, not production co
 
 ## Bundle contents
 
-- `cside-design-system/README.md` — this file
-- `cside-design-system/project/` — the `cside Design System` project files (HTML prototypes, assets, components)
+- `README.md` — this file
+- `CLAUDE.md` — agent entry point / map of the repo
+- `project/` — the `cside Design System` files: `cside-design-skill.md` (the design guide), `tokens.css`, `ui-kit.html`, HTML prototypes, assets, fonts, previews
+- `.claude/` — copywriting & editing skills, agents, and cside brand-voice context
